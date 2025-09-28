@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../App.css';
 
 const CreateAcc = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -103,7 +104,18 @@ const CreateAcc = () => {
     // If no errors, proceed with account creation
     if (Object.keys(newErrors).length === 0) {
       console.log('Account creation data:', formData);
-      // Handle account creation logic here
+      
+      // Store user data (in real app, this would come from API response)
+      const userData = {
+        fullName: formData.fullName,
+        email: formData.email,
+        role: formData.userType,
+        isLoggedIn: true
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Redirect to home page
+      navigate('/home');
     }
   };
 

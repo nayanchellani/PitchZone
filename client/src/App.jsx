@@ -1,11 +1,13 @@
 import "./App.css";
 import Startingpoint from "./Pages/Startingpoint";
-import Signup from "./Pages/Signup";
+import Login from "./Pages/Login";
 import CreateAcc from "./Pages/createAcc";
 import Home from "./Pages/Home";
 import Dashboard from "./Pages/Dashboard";
 import Pitches from "./Pages/Pitches";
+import PitchDetail from "./Pages/PitchDetail";
 import Leaderboard from "./Pages/Leaderboard";
+import Profile from "./Pages/Profile";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 function App() {
@@ -16,28 +18,36 @@ function App() {
     },
     {
       path: "/login",
-      element: <Signup />,
+      element: <Login />,
     },
     {
-      path: "/CreateAccount",
+      path: "/createaccount",
       element: <CreateAcc />,
     },
     {
-      path: "/Home",
-      element: <Home />
+      path: "/home",
+      element: <Home />,
     },
     {
       path: "/dashboard",
-      element: <Dashboard />
+      element: <Dashboard />,
     },
     {
       path: "/pitches",
-      element: <Pitches />
+      element: <Pitches />,
+    },
+    {
+      path: "/pitches/:id",
+      element: <PitchDetail />,
     },
     {
       path: "/leaderboard",
-      element: <Leaderboard />
-    }
+      element: <Leaderboard />,
+    },
+    {
+      path: "/profile",
+      element: <Profile />,
+    },
   ]);
 
   return <RouterProvider router={router} />;

@@ -1,10 +1,15 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../App.css";
+import Logo from "../assets/Logo.svg";
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Mock user role - in real app this would come from auth context
+  const [userRole] = useState('entrepreneur'); // Change to 'investor' to test investor navbar
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -14,12 +19,21 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
+  const handleLogout = () => {
+    setIsDropdownOpen(false);
+    // Clear any stored user data (localStorage, sessionStorage, etc.)
+    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    // Redirect to landing page
+    navigate('/');
+  };
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-brand">
-          <Link to="/" className="navbar-logo">
-            PitchZone
+          <Link to="/home" className="navbar-logo">
+            <img src={Logo} alt="PitchZone Logo" className="navbar-logo-img" />
           </Link>
         </div>
 
@@ -30,12 +44,23 @@ const Navbar = () => {
           >
             Dashboard
           </Link>
-          <Link
-            to="/pitches"
-            className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
-          >
-            Pitches
-          </Link>
+          
+          {userRole === 'entrepreneur' ? (
+            <Link
+              to="/pitches"
+              className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
+            >
+              My Pitch
+            </Link>
+          ) : (
+            <Link
+              to="/pitches"
+              className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
+            >
+              Explore Pitches
+            </Link>
+          )}
+          
           <Link
             to="/leaderboard"
             className={`navbar-link ${
@@ -49,7 +74,7 @@ const Navbar = () => {
         <div className="navbar-user">
           <button onClick={toggleDropdown} className="user-dropdown-btn">
             <div className="user-avatar">
-              <span>U</span>
+              <span>N</span>
             </div>
             <svg
               className={`dropdown-arrow ${isDropdownOpen ? "open" : ""}`}
@@ -75,18 +100,8 @@ const Navbar = () => {
               >
                 Profile
               </Link>
-              <Link
-                to="/settings"
-                className="dropdown-item"
-                onClick={() => setIsDropdownOpen(false)}
-              >
-                Settings
-              </Link>
               <button
-                onClick={() => {
-                  setIsDropdownOpen(false);
-                  // Add logout logic here
-                }}
+                onClick={handleLogout}
                 className="dropdown-item logout"
               >
                 Logout

@@ -4,28 +4,28 @@ import '../App.css';
 
 const Startingpoint = () => {
   return (
-    <div className="home-container">
-      <div className="home-content">
-        <h1 className="home-title">Welcome to StartupConnect</h1>
-        <p className="home-subtitle">
+    <div className="startingpoint-container">
+      <div className="startingpoint-content">
+        <h1 className="startingpoint-title">Welcome to PitchZone</h1>
+        <p className="startingpoint-subtitle">
           Where entrepreneurs meet investors and ideas become reality
         </p>
         
-        <div className="home-buttons">
-          <Link to="/login" className="home-btn login-btn">
+        <div className="startingpoint-buttons">
+          <Link to="/login" className="startingpoint-btn login-btn">
             Login
           </Link>
-          <Link to="/CreateAccount" className="home-btn signup-btn">
+          <Link to="/createaccount" className="startingpoint-btn signup-btn">
             Create Account
           </Link>
         </div>
         
-        <div className="home-features">
-          <div className="feature">
+        <div className="startingpoint-features">
+          <div className="startingpoint-feature">
             <h3>For Entrepreneurs</h3>
             <p>Showcase your innovative ideas and connect with potential investors</p>
           </div>
-          <div className="feature">
+          <div className="startingpoint-feature">
             <h3>For Investors</h3>
             <p>Discover promising startups and investment opportunities</p>
           </div>
