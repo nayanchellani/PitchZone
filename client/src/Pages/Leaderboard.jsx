@@ -92,19 +92,19 @@ const Leaderboard = () => {
 
         <div className="leaderboard-categories">
           <button 
-            className={`category-btn ${activeCategory === 'overall' ? 'active' : ''}`}
+            className={`action-button ${activeCategory === 'overall' ? 'active' : ''}`}
             onClick={() => setActiveCategory('overall')}
           >
             Overall
           </button>
           <button 
-            className={`category-btn ${activeCategory === 'funding' ? 'active' : ''}`}
+            className={`action-button ${activeCategory === 'funding' ? 'active' : ''}`}
             onClick={() => setActiveCategory('funding')}
           >
             Most Funded
           </button>
           <button 
-            className={`category-btn ${activeCategory === 'growth' ? 'active' : ''}`}
+            className={`action-button ${activeCategory === 'growth' ? 'active' : ''}`}
             onClick={() => setActiveCategory('growth')}
           >
             Fastest Growing

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import '../App.css';
@@ -6,35 +6,55 @@ import '../App.css';
 const PitchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [userRole] = useState('investor'); // Change to 'entrepreneur' to test entrepreneur view
+  const [pitch, setPitch] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [userRole, setUserRole] = useState('');
+  const [currentUserId, setCurrentUserId] = useState('');
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [showInvestModal, setShowInvestModal] = useState(false);
 
-  // Mock pitch data using the format you specified
-  const pitch = {
-    id: parseInt(id),
-    title: "AI Notes Summarizer",
-    description: "App that converts lecture notes into flashcards using advanced AI technology. Perfect for students and professionals who want to study more efficiently.",
-    targetAmount: 50000,
-    raisedAmount: 12000,
-    entrepreneur: { 
-      name: "Nayan", 
-      profile: "👤" 
-    },
-    investors: [
-      { name: "Investor1", amount: 5000 },
-      { name: "Investor2", amount: 3000 },
-      { name: "Investor3", amount: 4000 }
-    ],
-    feedback: [
-      "Great idea! The market for educational tools is huge.",
-      "Needs clearer revenue model. How will you monetize?",
-      "Love the AI integration. What's your competitive advantage?",
-      "Impressive prototype. When do you plan to launch?"
-    ]
-  };
+  // Get user info from localStorage
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setUserRole(user.role || '');
+    setCurrentUserId(user._id || '');
+  }, []);
+
+  // Fetch pitch details
+  useEffect(() => {
+    const fetchPitch = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:5000/api/pitches/${id}`, {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setPitch(data.pitch);
+        } else {
+          setError(data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching pitch:', error);
+        setError('Failed to fetch pitch details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchPitch();
+    }
+  }, [id]);
 
   const getProgressPercentage = () => {
+    if (!pitch) return 0;
     return Math.min((pitch.raisedAmount / pitch.targetAmount) * 100, 100);
   };
 
@@ -42,12 +62,33 @@ const PitchDetail = () => {
     setShowInvestModal(true);
   };
 
-  const handleInvestSubmit = (e) => {
+  const handleInvestSubmit = async (e) => {
     e.preventDefault();
-    console.log('Investment submitted:', { pitchId: id, amount: investmentAmount });
-    setShowInvestModal(false);
-    setInvestmentAmount('');
-    alert('Investment submitted successfully!');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/pitches/${id}/invest`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: parseFloat(investmentAmount) }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Investment submitted successfully!');
+        setShowInvestModal(false);
+        setInvestmentAmount('');
+        // Refresh pitch data
+        window.location.reload();
+      } else {
+        alert(data.message || 'Failed to submit investment');
+      }
+    } catch (error) {
+      console.error('Error submitting investment:', error);
+      alert('Failed to submit investment');
+    }
   };
 
   const handleEditPitch = () => {
@@ -60,6 +101,33 @@ const PitchDetail = () => {
       navigate('/pitches');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="pitch-detail-container">
+        <Navbar />
+        <div className="pitch-detail-content">
+          <div className="loading">Loading pitch details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !pitch) {
+    return (
+      <div className="pitch-detail-container">
+        <Navbar />
+        <div className="pitch-detail-content">
+          <div className="error">{error || 'Pitch not found'}</div>
+          <button onClick={() => navigate('/pitches')} className="back-btn">
+            ← Back to Pitches
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isOwner = currentUserId === pitch.entrepreneur._id;
 
   return (
     <div className="pitch-detail-container">
@@ -76,14 +144,24 @@ const PitchDetail = () => {
             <div className="pitch-hero">
               <h1 className="pitch-detail-title">{pitch.title}</h1>
               <div className="entrepreneur-info">
-                <span className="entrepreneur-avatar">{pitch.entrepreneur.profile}</span>
-                <span className="entrepreneur-name">by {pitch.entrepreneur.name}</span>
+                <span className="entrepreneur-avatar">
+                  {(pitch.entrepreneur.fullName || pitch.entrepreneur.username).charAt(0).toUpperCase()}
+                </span>
+                <span className="entrepreneur-name">
+                  by {pitch.entrepreneur.fullName || pitch.entrepreneur.username}
+                </span>
               </div>
             </div>
 
             <div className="pitch-description-section">
               <h2>About This Pitch</h2>
               <p className="pitch-full-description">{pitch.description}</p>
+              {pitch.category && (
+                <div style={{ marginTop: '1rem' }}>
+                  <span className="category-tag">{pitch.category}</span>
+                  {pitch.stage && <span className="category-tag" style={{ marginLeft: '0.5rem' }}>{pitch.stage}</span>}
+                </div>
+              )}
             </div>
 
             <div className="funding-progress-section">
@@ -109,7 +187,7 @@ const PitchDetail = () => {
                 
                 <div className="progress-info">
                   <span className="progress-percentage">{getProgressPercentage().toFixed(1)}% funded</span>
-                  <span className="investors-count">{pitch.investors.length} investors</span>
+                  <span className="investors-count">{pitch.investors?.length || 0} investors</span>
                 </div>
               </div>
             </div>
@@ -117,30 +195,36 @@ const PitchDetail = () => {
             <div className="feedback-section">
               <h2>Feedback & Comments</h2>
               <div className="feedback-list">
-                {pitch.feedback.map((comment, index) => (
-                  <div key={index} className="feedback-item">
-                    <div className="feedback-avatar">
-                      <span>👤</span>
+                {pitch.feedback && pitch.feedback.length > 0 ? (
+                  pitch.feedback.map((feedback, index) => (
+                    <div key={index} className="feedback-item">
+                      <div className="feedback-avatar">
+                        <span>{(feedback.userId?.fullName || feedback.userId?.username || 'U').charAt(0).toUpperCase()}</span>
+                      </div>
+                      <div className="feedback-content">
+                        <p>{feedback.message}</p>
+                        <span className="feedback-time">
+                          {new Date(feedback.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                    <div className="feedback-content">
-                      <p>{comment}</p>
-                      <span className="feedback-time">{Math.floor(Math.random() * 24)} hours ago</span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p style={{ color: 'var(--light-gray)', opacity: 0.7 }}>No feedback yet.</p>
+                )}
               </div>
             </div>
           </div>
 
           <div className="pitch-detail-sidebar">
             <div className="action-card">
-              {userRole === 'investor' && (
+              {userRole === 'investor' && !isOwner && (
                 <button className="invest-btn-large" onClick={handleInvest}>
                   💰 Invest Now
                 </button>
               )}
 
-              {userRole === 'entrepreneur' && (
+              {isOwner && (
                 <div className="entrepreneur-actions">
                   <button className="edit-pitch-btn" onClick={handleEditPitch}>
                     ✏️ Edit Pitch
@@ -155,12 +239,18 @@ const PitchDetail = () => {
             <div className="investors-card">
               <h3>Current Investors</h3>
               <div className="investors-list">
-                {pitch.investors.map((investor, index) => (
-                  <div key={index} className="investor-item">
-                    <span className="investor-name">{investor.name}</span>
-                    <span className="investor-amount">₹{investor.amount.toLocaleString()}</span>
-                  </div>
-                ))}
+                {pitch.investors && pitch.investors.length > 0 ? (
+                  pitch.investors.map((investor, index) => (
+                    <div key={index} className="investor-item">
+                      <span className="investor-name">
+                        {investor.userId?.fullName || investor.userId?.username || 'Anonymous'}
+                      </span>
+                      <span className="investor-amount">₹{investor.amount.toLocaleString()}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ color: 'var(--light-gray)', opacity: 0.7 }}>No investors yet.</p>
+                )}
               </div>
             </div>
           </div>
@@ -170,7 +260,7 @@ const PitchDetail = () => {
           <div className="invest-modal">
             <div className="modal-content">
               <div className="modal-header">
-                <h2>Invest in {pitch.title}</h2>
+                <h2>Invest in {pitch?.title}</h2>
                 <button 
                   className="close-btn"
                   onClick={() => setShowInvestModal(false)}

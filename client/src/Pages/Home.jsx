@@ -1,95 +1,166 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import "../App.css";
 
 const Home = () => {
-  // Mock user data - in real app this would come from authentication/context
-  const [user] = useState({
-    name: "Nayan",
-    role: "entrepreneur", // or "investor"
-    profileComplete: 75, // percentage
-    avatar: "N"
-  });
+  const [user, setUser] = useState(null);
+  const [pitches, setPitches] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Mock data for entrepreneurs
-  const entrepreneurStats = {
-    pitchesSubmitted: 3,
-    fundingInterest: 12,
-    leaderboardRank: 7,
-    totalViews: 245
+  // Fetch user data and dashboard info
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        // Fetch user profile
+        const profileResponse = await fetch('http://localhost:5000/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const profileData = await profileResponse.json();
+        if (profileData.success) {
+          setUser(profileData.user);
+
+          // Fetch recent pitches
+          const pitchesResponse = await fetch('http://localhost:5000/api/pitches?limit=6', {
+            headers: {
+              'Authorization': token ? `Bearer ${token}` : '',
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const pitchesData = await pitchesResponse.json();
+          if (pitchesData.success) {
+            setPitches(pitchesData.pitches);
+          }
+
+          // If entrepreneur, fetch their pitches for stats
+          if (profileData.user.role === 'entrepreneur') {
+            const myPitchesResponse = await fetch('http://localhost:5000/api/pitches/my/pitches', {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            const myPitchesData = await myPitchesResponse.json();
+            if (myPitchesData.success) {
+              const myPitches = myPitchesData.pitches;
+              const totalRaised = myPitches.reduce((sum, p) => sum + p.raisedAmount, 0);
+              const totalViews = myPitches.reduce((sum, p) => sum + (p.views || 0), 0);
+              const activePitches = myPitches.filter(p => p.status === 'Active').length;
+              
+              setStats({
+                pitchesSubmitted: myPitches.length,
+                totalRaised,
+                activePitches,
+                totalViews
+              });
+            }
+          }
+        } else {
+          setError(profileData.message);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setError('Failed to fetch dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const getProfileCompletionPercentage = () => {
+    if (!user) return 0;
+    const requiredFields = ['fullName', 'bio', 'phoneNumber', 'occupation', 'location'];
+    const roleSpecificFields = user.role === 'entrepreneur' 
+      ? ['companyName', 'industry'] 
+      : ['linkedinUrl'];
+    
+    const allRequiredFields = [...requiredFields, ...roleSpecificFields];
+    const completedFields = allRequiredFields.filter(field => user[field] && user[field].trim() !== '');
+    
+    return Math.round((completedFields.length / allRequiredFields.length) * 100);
   };
 
-  // Mock data for investors
-  const investorStats = {
-    pitchesReviewed: 28,
-    totalInvested: 750000,
-    pendingVerification: 5,
-    portfolioCompanies: 8
+  const generateActivityFeed = () => {
+    if (!user) return [];
+    
+    const activities = [];
+    
+    if (user.role === 'entrepreneur') {
+      activities.push(
+        {
+          id: 1,
+          type: 'profile',
+          message: 'Complete your profile to attract more investors',
+          time: 'Now',
+          icon: '👤'
+        },
+        {
+          id: 2,
+          type: 'pitch',
+          message: 'Create your first pitch to start fundraising',
+          time: 'Now',
+          icon: '🚀'
+        }
+      );
+    } else {
+      activities.push(
+        {
+          id: 1,
+          type: 'explore',
+          message: `${pitches.length} active pitches available for investment`,
+          time: 'Now',
+          icon: '📋'
+        },
+        {
+          id: 2,
+          type: 'profile',
+          message: 'Complete your investor profile',
+          time: 'Now',
+          icon: '💼'
+        }
+      );
+    }
+    
+    return activities;
   };
 
-  // Mock activity feed
-  const activityFeed = user.role === 'entrepreneur' ? [
-    {
-      id: 1,
-      type: 'view',
-      message: '3 investors viewed your "EcoTech Solutions" pitch',
-      time: '2 hours ago',
-      icon: '👀'
-    },
-    {
-      id: 2,
-      type: 'comment',
-      message: 'New comment received on your FinTech pitch',
-      time: '5 hours ago',
-      icon: '💬'
-    },
-    {
-      id: 3,
-      type: 'interest',
-      message: 'Sarah Chen showed interest in your startup',
-      time: '1 day ago',
-      icon: '⭐'
-    },
-    {
-      id: 4,
-      type: 'rank',
-      message: 'You moved up 2 positions in the leaderboard!',
-      time: '2 days ago',
-      icon: '📈'
-    }
-  ] : [
-    {
-      id: 1,
-      type: 'new_pitch',
-      message: '5 new pitches awaiting your review',
-      time: '1 hour ago',
-      icon: '📋'
-    },
-    {
-      id: 2,
-      type: 'trending',
-      message: 'AI Healthcare Platform is trending this week',
-      time: '3 hours ago',
-      icon: '🔥'
-    },
-    {
-      id: 3,
-      type: 'investment',
-      message: 'Your investment in GreenTech Solutions was approved',
-      time: '1 day ago',
-      icon: '✅'
-    },
-    {
-      id: 4,
-      type: 'update',
-      message: 'Portfolio company EduTech raised Series A',
-      time: '3 days ago',
-      icon: '🚀'
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="home-page">
+        <Navbar />
+        <div className="home-container">
+          <div className="loading">Loading dashboard...</div>
+        </div>
+      </div>
+    );
+  }
 
-  const currentStats = user.role === 'entrepreneur' ? entrepreneurStats : investorStats;
+  if (error || !user) {
+    return (
+      <div className="home-page">
+        <Navbar />
+        <div className="home-container">
+          <div className="error">{error || 'Failed to load dashboard'}</div>
+        </div>
+      </div>
+    );
+  }
+
+  const profileCompletion = getProfileCompletionPercentage();
+  const activityFeed = generateActivityFeed();
 
   return (
     <div className="home-page">
@@ -101,8 +172,8 @@ const Home = () => {
           <div className="welcome-text">
             <h1 className="welcome-greeting">
               {user.role === 'entrepreneur' 
-                ? `Welcome back, ${user.name} ` 
-                : `Hello, Investor ${user.name} 💼`
+                ? `Welcome back, ${user.fullName || user.username}! 🚀` 
+                : `Hello, ${user.fullName || user.username}! 💼`
               }
             </h1>
             <p className="welcome-subtitle">
@@ -114,27 +185,27 @@ const Home = () => {
           </div>
           <div className="welcome-avatar">
             <div className="avatar-circle">
-              <span>{user.avatar}</span>
+              <span>{(user.fullName || user.username).charAt(0).toUpperCase()}</span>
             </div>
           </div>
         </div>
 
         {/* Profile Completion Prompt */}
-        {user.profileComplete < 100 && (
+        {profileCompletion < 100 && (
           <div className="profile-completion">
             <div className="completion-content">
               <div className="completion-text">
                 <h3>Complete your profile to increase visibility by 40%</h3>
-                <p>{user.profileComplete}% completed</p>
+                <p>{profileCompletion}% completed</p>
               </div>
               <div className="completion-progress">
                 <div className="progress-bar">
                   <div 
                     className="progress-fill" 
-                    style={{width: `${user.profileComplete}%`}}
+                    style={{width: `${profileCompletion}%`}}
                   ></div>
                 </div>
-                <Link to="/profile" className="complete-btn">Complete Profile</Link>
+                <Link to="/profile" className="action-button">Complete Profile</Link>
               </div>
             </div>
           </div>
@@ -199,31 +270,30 @@ const Home = () => {
                   </div>
                 ))}
               </div>
-              <Link to="/dashboard" className="view-all-btn">View All Activity</Link>
+              <Link to="/dashboard" className="action-button">View All Activity</Link>
             </div>
 
             {/* Recommended Pitches */}
             <div className="recommended-pitches">
-              <h2>{user.role === 'entrepreneur' ? 'Trending Pitches' : 'Recommended for You'}</h2>
+              <h2>{user.role === 'entrepreneur' ? 'Recent Pitches' : 'Recommended for You'}</h2>
               <div className="pitch-recommendations">
-                <div className="mini-pitch-card">
-                  <div className="mini-pitch-image">🚀</div>
-                  <div className="mini-pitch-content">
-                    <h4>AI Healthcare Platform</h4>
-                    <p>$850K raised • 95% accuracy</p>
-                    <span className="trending-badge">🔥 Trending</span>
+                {pitches.slice(0, 2).map(pitch => (
+                  <div key={pitch._id} className="mini-pitch-card">
+                    <div className="mini-pitch-image">🚀</div>
+                    <div className="mini-pitch-content">
+                      <h4>{pitch.title}</h4>
+                      <p>₹{(pitch.raisedAmount / 1000).toFixed(0)}K raised • {pitch.category}</p>
+                      <span className="trending-badge">💡 {pitch.stage}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="mini-pitch-card">
-                  <div className="mini-pitch-image">🌱</div>
-                  <div className="mini-pitch-content">
-                    <h4>EcoTech Solutions</h4>
-                    <p>$275K raised • 40% efficiency</p>
-                    <span className="featured-badge">⭐ Featured</span>
-                  </div>
-                </div>
+                ))}
+                {pitches.length === 0 && (
+                  <p style={{ color: 'var(--light-gray)', opacity: 0.7, textAlign: 'center' }}>
+                    No pitches available yet.
+                  </p>
+                )}
               </div>
-              <Link to="/pitches" className="view-all-pitches-btn">View All Pitches</Link>
+              <Link to="/pitches" className="action-button">View All Pitches</Link>
             </div>
           </div>
 
@@ -238,22 +308,22 @@ const Home = () => {
                     <div className="stat-item-sidebar">
                       <span className="stat-icon-small">📊</span>
                       <div className="stat-info">
-                        <span className="stat-number">{currentStats.pitchesSubmitted}</span>
+                        <span className="stat-number">{stats?.pitchesSubmitted || 0}</span>
                         <span className="stat-label">Pitches</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
                       <span className="stat-icon-small">💰</span>
                       <div className="stat-info">
-                        <span className="stat-number">{currentStats.fundingInterest}</span>
-                        <span className="stat-label">Interest</span>
+                        <span className="stat-number">₹{((stats?.totalRaised || 0) / 1000).toFixed(0)}K</span>
+                        <span className="stat-label">Raised</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">🏆</span>
+                      <span className="stat-icon-small">👀</span>
                       <div className="stat-info">
-                        <span className="stat-number">#{currentStats.leaderboardRank}</span>
-                        <span className="stat-label">Rank</span>
+                        <span className="stat-number">{stats?.totalViews || 0}</span>
+                        <span className="stat-label">Views</span>
                       </div>
                     </div>
                   </>
@@ -262,28 +332,28 @@ const Home = () => {
                     <div className="stat-item-sidebar">
                       <span className="stat-icon-small">📋</span>
                       <div className="stat-info">
-                        <span className="stat-number">{currentStats.pitchesReviewed}</span>
-                        <span className="stat-label">Reviewed</span>
+                        <span className="stat-number">{pitches.length}</span>
+                        <span className="stat-label">Available</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
                       <span className="stat-icon-small">💼</span>
                       <div className="stat-info">
-                        <span className="stat-number">${(currentStats.totalInvested / 1000).toFixed(0)}K</span>
-                        <span className="stat-label">Invested</span>
+                        <span className="stat-number">{profileCompletion}%</span>
+                        <span className="stat-label">Profile</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
                       <span className="stat-icon-small">🏢</span>
                       <div className="stat-info">
-                        <span className="stat-number">{currentStats.portfolioCompanies}</span>
-                        <span className="stat-label">Portfolio</span>
+                        <span className="stat-number">{new Date(user.createdAt).getFullYear()}</span>
+                        <span className="stat-label">Since</span>
                       </div>
                     </div>
                   </>
                 )}
               </div>
-              <Link to="/dashboard" className="view-dashboard-btn">View Dashboard</Link>
+              <Link to="/dashboard" className="action-button">View Dashboard</Link>
             </div>
 
             {/* Leaderboard Teaser */}
@@ -306,7 +376,7 @@ const Home = () => {
                   <span className="score">82</span>
                 </div>
               </div>
-              <Link to="/leaderboard" className="view-leaderboard-btn">View Full Leaderboard</Link>
+              <Link to="/leaderboard" className="action-button">View Full Leaderboard</Link>
             </div>
 
             {/* Announcements */}

@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../App.css";
-import Logo from "../assets/Logo.svg";
+import Logo from "../assets/Logo.png";
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Mock user role - in real app this would come from auth context
-  const [userRole] = useState('entrepreneur'); // Change to 'investor' to test investor navbar
+  // Get user role from localStorage
+  const [userRole] = useState(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.role || 'entrepreneur';
+  });
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -21,9 +24,11 @@ const Navbar = () => {
 
   const handleLogout = () => {
     setIsDropdownOpen(false);
-    // Clear any stored user data (localStorage, sessionStorage, etc.)
+    // Clear all stored user data
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     sessionStorage.removeItem('user');
+    sessionStorage.removeItem('token');
     // Redirect to landing page
     navigate('/');
   };
@@ -39,33 +44,29 @@ const Navbar = () => {
 
         <div className="navbar-links">
           <Link
+            to="/home"
+            className={`navbar-link ${isActive("/home") ? "active" : ""}`}
+          >
+            Home
+          </Link>
+          
+          <Link
             to="/dashboard"
             className={`navbar-link ${isActive("/dashboard") ? "active" : ""}`}
           >
             Dashboard
           </Link>
           
-          {userRole === 'entrepreneur' ? (
-            <Link
-              to="/pitches"
-              className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
-            >
-              My Pitch
-            </Link>
-          ) : (
-            <Link
-              to="/pitches"
-              className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
-            >
-              Explore Pitches
-            </Link>
-          )}
+          <Link
+            to="/pitches"
+            className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
+          >
+            {userRole === 'entrepreneur' ? 'My Pitches' : 'Explore Pitches'}
+          </Link>
           
           <Link
             to="/leaderboard"
-            className={`navbar-link ${
-              isActive("/leaderboard") ? "active" : ""
-            }`}
+            className={`navbar-link ${isActive("/leaderboard") ? "active" : ""}`}
           >
             Leaderboard
           </Link>
@@ -74,7 +75,10 @@ const Navbar = () => {
         <div className="navbar-user">
           <button onClick={toggleDropdown} className="user-dropdown-btn">
             <div className="user-avatar">
-              <span>N</span>
+              <span>{(() => {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                return (user.fullName || user.username || 'U').charAt(0).toUpperCase();
+              })()}</span>
             </div>
             <svg
               className={`dropdown-arrow ${isDropdownOpen ? "open" : ""}`}

@@ -10,22 +10,27 @@ dotenv.config();
 const authRoutes = require('./routes/auth');
 const pitchRoutes = require('./routes/pitches');
 const userRoutes = require('./routes/users');
+const adminRoutes = require('./routes/admin');
 
 // Initialize Express app
 const app = express();
 
-// Middleware
+// CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000', // Frontend URL
-  credentials: true
+  origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+// Middleware
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/pitches', pitchRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
@@ -71,15 +76,12 @@ const PORT = process.env.PORT || 5000;
 connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📱 Frontend should connect to: http://localhost:${PORT}`);
+    console.log(`📱 API endpoints available at: http://localhost:${PORT}/api`);
   });
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.log('Unhandled Promise Rejection:', err.message);
-  // Close server & exit process
-  server.close(() => {
-    process.exit(1);
-  });
+  process.exit(1);
 });

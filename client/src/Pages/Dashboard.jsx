@@ -63,10 +63,10 @@ const Dashboard = () => {
         </div>
 
         <div className="dashboard-actions">
-          <Link to="/pitches" className="action-btn primary">
+          <Link to="/pitches" className="primary-cta-button">
             Create New Pitch
           </Link>
-          <Link to="/leaderboard" className="action-btn secondary">
+          <Link to="/leaderboard" className="action-button">
             View Leaderboard
           </Link>
         </div>

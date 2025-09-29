@@ -8,6 +8,8 @@ import Pitches from "./Pages/Pitches";
 import PitchDetail from "./Pages/PitchDetail";
 import Leaderboard from "./Pages/Leaderboard";
 import Profile from "./Pages/Profile";
+import AdminDashboard from "./Pages/AdminDashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 function App() {
@@ -26,27 +28,59 @@ function App() {
     },
     {
       path: "/home",
-      element: <Home />,
+      element: (
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      ),
     },
     {
       path: "/dashboard",
-      element: <Dashboard />,
+      element: (
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
     },
     {
       path: "/pitches",
-      element: <Pitches />,
+      element: (
+        <ProtectedRoute>
+          <Pitches />
+        </ProtectedRoute>
+      ),
     },
     {
       path: "/pitches/:id",
-      element: <PitchDetail />,
+      element: (
+        <ProtectedRoute>
+          <PitchDetail />
+        </ProtectedRoute>
+      ),
     },
     {
       path: "/leaderboard",
-      element: <Leaderboard />,
+      element: (
+        <ProtectedRoute>
+          <Leaderboard />
+        </ProtectedRoute>
+      ),
     },
     {
       path: "/profile",
-      element: <Profile />,
+      element: (
+        <ProtectedRoute>
+          <Profile />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/admin",
+      element: (
+        <ProtectedRoute requiredRole="admin">
+          <AdminDashboard />
+        </ProtectedRoute>
+      ),
     },
   ]);
 

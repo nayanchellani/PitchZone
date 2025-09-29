@@ -1,121 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import '../App.css';
 
 const Pitches = () => {
-  const [sortBy, setSortBy] = useState('trending');
+  const [sortBy, setSortBy] = useState('createdAt');
   const [filterBy, setFilterBy] = useState('all');
-  const [userRole] = useState('entrepreneur'); // This would come from auth context
+  const [pitches, setPitches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPitch, setNewPitch] = useState({
-    productName: '',
+    title: '',
     description: '',
-    image: '',
-    fundingGoal: '',
-    equityOffered: ''
+    targetAmount: '',
+    equityOffered: '',
+    category: 'Technology',
+    stage: 'Idea'
   });
 
-  const pitches = [
-    {
-      id: 1,
-      title: "EcoTech Solutions",
-      description: "Revolutionary solar panel technology that increases efficiency by 40% while reducing costs.",
-      category: "GreenTech",
-      targetAmount: 500000,
-      raisedAmount: 275000,
-      investors: 12,
-      founder: "Sarah Chen",
-      image: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=400&h=250&fit=crop",
-      trending: true,
-      featured: false
-    },
-    {
-      id: 2,
-      title: "AI Healthcare Platform",
-      description: "AI-powered diagnostic platform that helps doctors detect diseases 3x faster with 95% accuracy.",
-      category: "HealthTech",
-      targetAmount: 1200000,
-      raisedAmount: 850000,
-      investors: 8,
-      founder: "Dr. Marcus Johnson",
-      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop",
-      trending: false,
-      featured: true
-    },
-    {
-      id: 3,
-      title: "FinTech Revolution",
-      description: "Blockchain-based payment system for emerging markets with zero transaction fees.",
-      category: "FinTech",
-      targetAmount: 750000,
-      raisedAmount: 425000,
-      investors: 15,
-      founder: "David Kim",
-      image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop",
-      trending: true,
-      featured: false
-    },
-    {
-      id: 4,
-      title: "Smart Agriculture",
-      description: "IoT sensors and AI analytics to optimize crop yields and reduce water usage by 30%.",
-      category: "AgriTech",
-      targetAmount: 300000,
-      raisedAmount: 180000,
-      investors: 6,
-      founder: "Lisa Rodriguez",
-      image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=400&h=250&fit=crop",
-      trending: false,
-      featured: false
-    },
-    {
-      id: 5,
-      title: "EdTech Innovation",
-      description: "Virtual reality platform for immersive learning experiences in STEM education.",
-      category: "EdTech",
-      targetAmount: 600000,
-      raisedAmount: 320000,
-      investors: 9,
-      founder: "Ahmed Hassan",
-      image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=250&fit=crop",
-      trending: true,
-      featured: true
-    },
-    {
-      id: 6,
-      title: "Clean Energy Storage",
-      description: "Next-generation battery technology for renewable energy storage with 10x capacity.",
-      category: "GreenTech",
-      targetAmount: 2000000,
-      raisedAmount: 1200000,
-      investors: 20,
-      founder: "Emily Thompson",
-      image: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&h=250&fit=crop",
-      trending: false,
-      featured: true
-    }
-  ];
+  const categories = ['all', 'Technology', 'Healthcare', 'Education', 'Finance', 'E-commerce', 'Food & Beverage', 'Entertainment', 'Other'];
+  const sortOptions = ['createdAt', 'targetAmount', 'raisedAmount'];
 
-  const categories = ['all', 'GreenTech', 'HealthTech', 'FinTech', 'AgriTech', 'EdTech'];
-  const sortOptions = ['trending', 'most_funded', 'newest', 'target_amount'];
+  // Get user role from localStorage
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setUserRole(user.role || '');
+  }, []);
 
-  const filteredAndSortedPitches = pitches
-    .filter(pitch => filterBy === 'all' || pitch.category === filterBy)
-    .sort((a, b) => {
-      switch(sortBy) {
-        case 'trending':
-          return b.trending - a.trending;
-        case 'most_funded':
-          return b.raisedAmount - a.raisedAmount;
-        case 'newest':
-          return b.id - a.id;
-        case 'target_amount':
-          return b.targetAmount - a.targetAmount;
-        default:
-          return 0;
+  // Fetch pitches from backend
+  const fetchPitches = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/pitches?status=Active&category=${filterBy}&sortBy=${sortBy}&order=desc`, {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setPitches(data.pitches);
+      } else {
+        setError(data.message);
       }
-    });
+    } catch (error) {
+      console.error('Error fetching pitches:', error);
+      setError('Failed to fetch pitches');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPitches();
+  }, [sortBy, filterBy]);
 
   const getProgressPercentage = (raised, target) => {
     return Math.min((raised / target) * 100, 100);
@@ -125,18 +67,39 @@ const Pitches = () => {
     setShowCreateForm(true);
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    console.log('New pitch created:', newPitch);
-    // Here you would typically send the data to your backend
-    setShowCreateForm(false);
-    setNewPitch({
-      productName: '',
-      description: '',
-      image: '',
-      fundingGoal: '',
-      equityOffered: ''
-    });
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5000/api/pitches/create', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newPitch),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Pitch created successfully!');
+        setShowCreateForm(false);
+        setNewPitch({
+          title: '',
+          description: '',
+          targetAmount: '',
+          equityOffered: '',
+          category: 'Technology',
+          stage: 'Idea'
+        });
+        fetchPitches(); // Refresh the pitches list
+      } else {
+        alert(data.message || 'Failed to create pitch');
+      }
+    } catch (error) {
+      console.error('Error creating pitch:', error);
+      alert('Failed to create pitch');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -157,7 +120,7 @@ const Pitches = () => {
             <p className="pitches-subtitle">Discover innovative startups seeking investment</p>
           </div>
           {userRole === 'entrepreneur' && (
-            <button className="create-pitch-btn" onClick={handleCreatePitch}>
+            <button className="primary-cta-button" onClick={handleCreatePitch}>
               + CREATE A NEW PITCH
             </button>
           )}
@@ -171,10 +134,9 @@ const Pitches = () => {
               onChange={(e) => setSortBy(e.target.value)}
               className="filter-select"
             >
-              <option value="trending">Trending</option>
-              <option value="most_funded">Most Funded</option>
-              <option value="newest">Newest</option>
-              <option value="target_amount">Highest Target</option>
+              <option value="createdAt">Newest</option>
+              <option value="targetAmount">Highest Target</option>
+              <option value="raisedAmount">Most Funded</option>
             </select>
           </div>
           
@@ -208,60 +170,86 @@ const Pitches = () => {
               </div>
               <form onSubmit={handleFormSubmit} className="pitch-form">
                 <div className="form-group">
-                  <label>Product Name *</label>
+                  <label>Pitch Title *</label>
                   <input
                     type="text"
-                    name="productName"
-                    value={newPitch.productName}
+                    name="title"
+                    value={newPitch.title}
                     onChange={handleInputChange}
-                    placeholder="Enter your product name"
+                    placeholder="Enter your pitch title"
                     required
                   />
                 </div>
                 
                 <div className="form-group">
-                  <label>Product Description *</label>
+                  <label>Description *</label>
                   <textarea
                     name="description"
                     value={newPitch.description}
                     onChange={handleInputChange}
-                    placeholder="Describe your product and its unique value proposition"
+                    placeholder="Describe your business idea and its unique value proposition"
                     rows="4"
                     required
                   />
                 </div>
                 
-                <div className="form-group">
-                  <label>Product Image URL</label>
-                  <input
-                    type="url"
-                    name="image"
-                    value={newPitch.image}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/your-product-image.jpg"
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Category *</label>
+                    <select
+                      name="category"
+                      value={newPitch.category}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="Technology">Technology</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Education">Education</option>
+                      <option value="Finance">Finance</option>
+                      <option value="E-commerce">E-commerce</option>
+                      <option value="Food & Beverage">Food & Beverage</option>
+                      <option value="Entertainment">Entertainment</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Stage *</label>
+                    <select
+                      name="stage"
+                      value={newPitch.stage}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="Idea">Idea</option>
+                      <option value="Prototype">Prototype</option>
+                      <option value="MVP">MVP</option>
+                      <option value="Early Revenue">Early Revenue</option>
+                      <option value="Growth">Growth</option>
+                    </select>
+                  </div>
                 </div>
                 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Funding Goal *</label>
+                    <label>Target Amount *</label>
                     <div className="input-with-currency">
                       <span className="currency-symbol">₹</span>
                       <input
                         type="number"
-                        name="fundingGoal"
-                        value={newPitch.fundingGoal}
+                        name="targetAmount"
+                        value={newPitch.targetAmount}
                         onChange={handleInputChange}
-                        placeholder="10,00,000"
-                        min="1"
+                        placeholder="1000000"
+                        min="1000"
                         required
                       />
                     </div>
-                    <small>Example: ₹10,00,000 - Let investors know your target</small>
+                    <small>Minimum: ₹1,000 - Maximum: ₹10 crores</small>
                   </div>
                   
                   <div className="form-group">
-                    <label>Equity Offered *</label>
+                    <label>Equity Offered (%)</label>
                     <div className="input-with-percent">
                       <input
                         type="number"
@@ -272,23 +260,22 @@ const Pitches = () => {
                         min="0.1"
                         max="100"
                         step="0.1"
-                        required
                       />
                       <span className="percent-symbol">%</span>
                     </div>
-                    <small>Example: 10% equity for ₹10L - Important for investors</small>
+                    <small>Optional: Percentage of equity you're willing to offer</small>
                   </div>
                 </div>
                 
                 <div className="form-actions">
                   <button 
                     type="button" 
-                    className="btn-cancel"
+                    className="action-button"
                     onClick={() => setShowCreateForm(false)}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-submit">
+                  <button type="submit" className="primary-cta-button">
                     Create Pitch
                   </button>
                 </div>
@@ -297,81 +284,91 @@ const Pitches = () => {
           </div>
         )}
 
-        <div className="pitches-grid">
-          {filteredAndSortedPitches.map(pitch => (
-            <div key={pitch.id} className="marketplace-pitch-card">
-              <div className="pitch-image">
-                <img src={pitch.image} alt={pitch.title} />
-                <div className="pitch-badges">
-                  {pitch.trending && <span className="badge trending">🔥 Trending</span>}
-                  {pitch.featured && <span className="badge featured">⭐ Featured</span>}
-                </div>
-              </div>
-              
-              <div className="pitch-content">
-                <div className="pitch-header">
-                  <h3 className="pitch-title">{pitch.title}</h3>
-                  <span className="category-tag">{pitch.category}</span>
+        {loading ? (
+          <div className="loading">Loading pitches...</div>
+        ) : error ? (
+          <div className="error">{error}</div>
+        ) : (
+          <div className="pitches-grid">
+            {pitches.map(pitch => (
+              <div key={pitch._id} className="marketplace-pitch-card">
+                <div className="pitch-image">
+                  <div className="pitch-placeholder">
+                    <span className="pitch-icon">🚀</span>
+                  </div>
+                  <div className="pitch-badges">
+                    <span className="badge status">{pitch.status}</span>
+                    {pitch.stage && <span className="badge stage">{pitch.stage}</span>}
+                  </div>
                 </div>
                 
-                <p className="pitch-description">{pitch.description}</p>
-                
-                <div className="pitch-founder">
-                  <span>👤 {pitch.founder}</span>
-                </div>
+                <div className="pitch-content">
+                  <div className="pitch-header">
+                    <h3 className="pitch-title">{pitch.title}</h3>
+                    <span className="category-tag">{pitch.category}</span>
+                  </div>
+                  
+                  <p className="pitch-description">{pitch.description}</p>
+                  
+                  <div className="pitch-founder">
+                    <span>👤 {pitch.entrepreneur?.fullName || pitch.entrepreneur?.username}</span>
+                  </div>
 
-                <div className="funding-section">
-                  <div className="funding-info">
-                    <div className="funding-amounts">
-                      <span className="raised">${(pitch.raisedAmount / 1000).toFixed(0)}K raised</span>
-                      <span className="target">of ${(pitch.targetAmount / 1000).toFixed(0)}K target</span>
+                  <div className="funding-section">
+                    <div className="funding-info">
+                      <div className="funding-amounts">
+                        <span className="raised">₹{(pitch.raisedAmount / 1000).toFixed(0)}K raised</span>
+                        <span className="target">of ₹{(pitch.targetAmount / 1000).toFixed(0)}K target</span>
+                      </div>
+                      <div className="investors-count">{pitch.totalInvestors || 0} investors</div>
                     </div>
-                    <div className="investors-count">{pitch.investors} investors</div>
+                    
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{width: `${getProgressPercentage(pitch.raisedAmount, pitch.targetAmount)}%`}}
+                      ></div>
+                    </div>
+                    
+                    <div className="progress-percentage">
+                      {getProgressPercentage(pitch.raisedAmount, pitch.targetAmount).toFixed(0)}% funded
+                    </div>
                   </div>
-                  
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill" 
-                      style={{width: `${getProgressPercentage(pitch.raisedAmount, pitch.targetAmount)}%`}}
-                    ></div>
-                  </div>
-                  
-                  <div className="progress-percentage">
-                    {getProgressPercentage(pitch.raisedAmount, pitch.targetAmount).toFixed(0)}% funded
+
+                  <div className="pitch-actions">
+                    <Link to={`/pitches/${pitch._id}`} className="action-button">View Details</Link>
+                    {userRole === 'investor' && (
+                      <button className="primary-cta-button">💰 Invest</button>
+                    )}
                   </div>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-                <div className="pitch-actions">
-                  <Link to={`/pitches/${pitch.id}`} className="btn-secondary view-details">View Details</Link>
-                  {userRole === 'investor' && (
-                    <button className="btn-primary invest-btn">💰 Invest</button>
-                  )}
+        {!loading && !error && (
+          <div className="marketplace-stats">
+            <div className="stats-grid">
+              <div className="stat-item">
+                <h3>Total Startups</h3>
+                <div className="stat-number">{pitches.length}</div>
+              </div>
+              <div className="stat-item">
+                <h3>Total Funding</h3>
+                <div className="stat-number">
+                  ₹{(pitches.reduce((sum, p) => sum + p.raisedAmount, 0) / 1000000).toFixed(1)}M
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="marketplace-stats">
-          <div className="stats-grid">
-            <div className="stat-item">
-              <h3>Total Startups</h3>
-              <div className="stat-number">{pitches.length}</div>
-            </div>
-            <div className="stat-item">
-              <h3>Total Funding</h3>
-              <div className="stat-number">
-                ${(pitches.reduce((sum, p) => sum + p.raisedAmount, 0) / 1000000).toFixed(1)}M
-              </div>
-            </div>
-            <div className="stat-item">
-              <h3>Active Investors</h3>
-              <div className="stat-number">
-                {pitches.reduce((sum, p) => sum + p.investors, 0)}
+              <div className="stat-item">
+                <h3>Active Investors</h3>
+                <div className="stat-number">
+                  {pitches.reduce((sum, p) => sum + (p.totalInvestors || 0), 0)}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

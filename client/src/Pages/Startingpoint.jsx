@@ -12,10 +12,10 @@ const Startingpoint = () => {
         </p>
         
         <div className="startingpoint-buttons">
-          <Link to="/login" className="startingpoint-btn login-btn">
+          <Link to="/login" className="action-button">
             Login
           </Link>
-          <Link to="/createaccount" className="startingpoint-btn signup-btn">
+          <Link to="/createaccount" className="primary-cta-button">
             Create Account
           </Link>
         </div>
