@@ -1,5 +1,5 @@
 // API configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 export const API_ENDPOINTS = {
   // Auth endpoints
@@ -14,6 +14,11 @@ export const API_ENDPOINTS = {
   
   // User endpoints
   users: `${API_BASE_URL}/api/users`,
+  
+  // Admin endpoints
+  adminDashboard: `${API_BASE_URL}/api/admin/dashboard`,
+  adminUsers: `${API_BASE_URL}/api/admin/users`,
+  adminPitches: `${API_BASE_URL}/api/admin/pitches`,
 };
 
 export default API_BASE_URL;

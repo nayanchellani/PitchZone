@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 import '../App.css';
 
 const AdminDashboard = () => {
@@ -25,7 +26,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/dashboard', {
+      const response = await fetch(API_ENDPOINTS.adminDashboard, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -49,7 +50,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch(API_ENDPOINTS.adminUsers, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/admin/pitches', {
+      const response = await fetch(API_ENDPOINTS.adminPitches, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -98,7 +99,7 @@ const AdminDashboard = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_ENDPOINTS.adminUsers}/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -123,7 +124,7 @@ const AdminDashboard = () => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/admin/pitches/${pitchId}`, {
+      const response = await fetch(`${API_ENDPOINTS.adminPitches}/${pitchId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

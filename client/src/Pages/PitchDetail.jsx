@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
+import { API_ENDPOINTS } from '../config/api';
 import '../App.css';
 
 const PitchDetail = () => {
@@ -27,7 +28,7 @@ const PitchDetail = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:5000/api/pitches/${id}`, {
+        const response = await fetch(`${API_ENDPOINTS.pitches}/${id}`, {
           headers: {
             'Authorization': token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json',
@@ -66,7 +67,7 @@ const PitchDetail = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/pitches/${id}/invest`, {
+      const response = await fetch(`${API_ENDPOINTS.pitches}/${id}/invest`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

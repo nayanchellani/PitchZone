@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import { API_ENDPOINTS } from '../config/api';
 import "../App.css";
 
 const Home = () => {
@@ -18,7 +19,7 @@ const Home = () => {
         const token = localStorage.getItem('token');
         
         // Fetch user profile
-        const profileResponse = await fetch('http://localhost:5000/api/auth/me', {
+        const profileResponse = await fetch(API_ENDPOINTS.getProfile, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -30,7 +31,7 @@ const Home = () => {
           setUser(profileData.user);
 
           // Fetch recent pitches
-          const pitchesResponse = await fetch('http://localhost:5000/api/pitches?limit=6', {
+          const pitchesResponse = await fetch(`${API_ENDPOINTS.pitches}?limit=6`, {
             headers: {
               'Authorization': token ? `Bearer ${token}` : '',
               'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ const Home = () => {
 
           // If entrepreneur, fetch their pitches for stats
           if (profileData.user.role === 'entrepreneur') {
-            const myPitchesResponse = await fetch('http://localhost:5000/api/pitches/my/pitches', {
+            const myPitchesResponse = await fetch(`${API_ENDPOINTS.pitches}/my/pitches`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',

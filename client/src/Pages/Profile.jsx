@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
+import { API_ENDPOINTS } from '../config/api';
 import '../App.css';
 
 const Profile = () => {
@@ -28,7 +29,7 @@ const Profile = () => {
         const token = localStorage.getItem('token');
         
         // Fetch user profile
-        const profileResponse = await fetch('http://localhost:5000/api/auth/me', {
+        const profileResponse = await fetch(API_ENDPOINTS.getProfile, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ const Profile = () => {
 
           // Fetch user's pitches if entrepreneur
           if (profileData.user.role === 'entrepreneur') {
-            const pitchesResponse = await fetch('http://localhost:5000/api/pitches/my/pitches', {
+            const pitchesResponse = await fetch(`${API_ENDPOINTS.pitches}/my/pitches`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -82,7 +83,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/auth/profile', {
+      const response = await fetch(API_ENDPOINTS.updateProfile, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
