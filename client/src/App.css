@@ -55,8 +55,9 @@ body {
   color: var(--light-gray);
   line-height: 1.6;
   overflow-x: hidden;
-}/
-* ===== BUTTON STYLES ===== */
+}
+
+/* ===== BUTTON STYLES ===== */
 /* Auth Buttons (Login/Signup) */
 .auth-button {
   background: var(--teal);
@@ -204,8 +205,9 @@ body {
 
 .action-button.active::before {
   left: 0;
-}/* =
-==== NAVBAR STYLES ===== */
+}
+
+/* ===== NAVBAR STYLES ===== */
 .navbar {
   background: rgba(31, 40, 51, 0.95);
   backdrop-filter: blur(10px);
@@ -365,8 +367,9 @@ body {
   border-top: 1px solid rgba(102, 252, 241, 0.1);
   margin-top: var(--spacing-sm);
   padding-top: var(--spacing-md);
-}/* 
-===== AUTH PAGES (LOGIN/SIGNUP) ===== */
+}
+
+/* ===== AUTH PAGES (LOGIN/SIGNUP) ===== */
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -636,8 +639,9 @@ body {
 
 .investor-field {
   margin-top: var(--spacing-md);
-}/* ===
-== HOME PAGE STYLES ===== */
+}
+
+/* ===== HOME PAGE STYLES ===== */
 .home-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
@@ -964,8 +968,9 @@ body {
 .featured-badge {
   background: rgba(102, 252, 241, 0.2);
   color: var(--vibrant-cyan);
-}/* Sideb
-ar Components */
+}
+
+/* Sidebar Components */
 .quick-stats-sidebar, .leaderboard-teaser, .announcements {
   background: rgba(31, 40, 51, 0.6);
   border-radius: var(--radius-xl);
@@ -1087,8 +1092,8 @@ ar Components */
   color: var(--light-gray);
   opacity: 0.6;
   font-size: 0.75rem;
-}/
-* ===== DASHBOARD STYLES ===== */
+}
+/* ===== DASHBOARD STYLES ===== */
 .dashboard-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
@@ -1214,8 +1219,8 @@ ar Components */
   color: var(--vibrant-cyan);
   font-size: 1.5rem;
   margin-bottom: var(--spacing-lg);
-}/
-* ===== PITCHES PAGE STYLES ===== */
+}
+/* ===== PITCHES PAGE STYLES ===== */
 .pitches-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
@@ -1611,8 +1616,9 @@ ar Components */
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--vibrant-cyan);
-}/* 
-===== LEADERBOARD STYLES ===== */
+}
+
+/* ===== LEADERBOARD STYLES ===== */
 .leaderboard-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
@@ -1881,8 +1887,9 @@ ar Components */
   opacity: 0.8;
   font-size: 0.9rem;
   line-height: 1.5;
-}/* ==
-=== STARTINGPOINT STYLES ===== */
+}
+
+/* ===== STARTINGPOINT STYLES ===== */
 .startingpoint-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
@@ -2130,8 +2137,9 @@ tbody tr:hover {
 .delete-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}/* =
-==== RESPONSIVE DESIGN ===== */
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1024px) {
   .home-main-content {
     grid-template-columns: 1fr;
@@ -2511,8 +2519,9 @@ tbody tr:hover {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--vibrant-cyan) var(--secondary-dark);
-}/* ===
-== PITCH DETAIL PAGE STYLES ===== */
+}
+
+/* ===== PITCH DETAIL PAGE STYLES ===== */
 .pitch-detail-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
@@ -2935,8 +2944,9 @@ tbody tr:hover {
   .entrepreneur-actions {
     flex-direction: row;
   }
-}/* 
-===== PROFILE PAGE STYLES ===== */
+}
+
+/* ===== PROFILE PAGE STYLES ===== */
 .profile-container {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
