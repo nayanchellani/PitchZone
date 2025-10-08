@@ -14,6 +14,7 @@ const PitchDetail = () => {
   const [currentUserId, setCurrentUserId] = useState('');
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [showInvestModal, setShowInvestModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Get user info from localStorage
   useEffect(() => {
@@ -96,10 +97,35 @@ const PitchDetail = () => {
     alert('Edit pitch functionality would be implemented here');
   };
 
-  const handleClosePitch = () => {
-    if (window.confirm('Are you sure you want to close this pitch?')) {
-      alert('Pitch closed successfully');
-      navigate('/pitches');
+  const handleDeletePitch = async () => {
+    if (!window.confirm('Are you sure you want to delete this pitch? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_ENDPOINTS.pitches}/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        alert('Pitch deleted successfully!');
+        navigate('/pitches');
+      } else {
+        alert(data.message || 'Failed to delete pitch');
+      }
+    } catch (error) {
+      console.error('Error deleting pitch:', error);
+      alert('Network error. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -143,6 +169,24 @@ const PitchDetail = () => {
         <div className="pitch-detail-main">
           <div className="pitch-detail-left">
             <div className="pitch-hero">
+              {pitch.imageUrl && (
+                <div className="pitch-detail-image">
+                  <img 
+                    src={pitch.imageUrl} 
+                    alt={pitch.title}
+                    style={{
+                      width: '100%',
+                      maxHeight: '300px',
+                      objectFit: 'cover',
+                      borderRadius: '12px',
+                      marginBottom: '1.5rem'
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
               <h1 className="pitch-detail-title">{pitch.title}</h1>
               <div className="entrepreneur-info">
                 <span className="entrepreneur-avatar">
@@ -230,8 +274,12 @@ const PitchDetail = () => {
                   <button className="edit-pitch-btn" onClick={handleEditPitch}>
                     ✏️ Edit Pitch
                   </button>
-                  <button className="close-pitch-btn" onClick={handleClosePitch}>
-                    🔒 Close Pitch
+                  <button 
+                    className="delete-pitch-btn" 
+                    onClick={handleDeletePitch}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? '🗑️ Deleting...' : '🗑️ Delete Pitch'}
                   </button>
                 </div>
               )}

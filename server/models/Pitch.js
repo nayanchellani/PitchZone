@@ -94,6 +94,10 @@ const pitchSchema = new mongoose.Schema({
     default: 'Active'
   },
   // Media and documents
+  imageUrl: {
+    type: String,
+    trim: true
+  },
   images: [{
     type: String // URLs to images
   }],

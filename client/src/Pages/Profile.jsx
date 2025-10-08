@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
+import { cleanFormData, validateProfileForm, getCharacterCountInfo } from '../utils/formValidation';
 import '../App.css';
 
 const Profile = () => {
@@ -9,6 +10,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingPitchId, setDeletingPitchId] = useState(null);
   const [editForm, setEditForm] = useState({
     fullName: '',
     bio: '',
@@ -81,28 +85,59 @@ const Profile = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const validation = validateProfileForm(editForm);
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setFormErrors({});
+    
     try {
       const token = localStorage.getItem('token');
+      
+      // Clean form data - remove empty strings
+      const cleanedData = cleanFormData(editForm);
+      
       const response = await fetch(API_ENDPOINTS.updateProfile, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(cleanedData),
       });
 
       const data = await response.json();
       if (data.success) {
+        // Update both local state and localStorage
         setUser(data.user);
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const updatedUser = { ...currentUser, ...data.user };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        
         setShowEditModal(false);
         alert('Profile updated successfully!');
       } else {
-        alert(data.message || 'Failed to update profile');
+        // Handle backend validation errors
+        if (data.errors && Array.isArray(data.errors)) {
+          const backendErrors = {};
+          data.errors.forEach(error => {
+            backendErrors[error.path || error.param] = error.msg;
+          });
+          setFormErrors(backendErrors);
+        } else {
+          alert(data.message || 'Failed to update profile');
+        }
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert('Network error. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -112,6 +147,47 @@ const Profile = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const handleDeletePitch = async (pitchId) => {
+    if (!window.confirm('Are you sure you want to delete this pitch? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeletingPitchId(pitchId);
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_ENDPOINTS.pitches}/${pitchId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Remove the deleted pitch from the local state
+        setPitches(prevPitches => prevPitches.filter(pitch => pitch._id !== pitchId));
+        alert('Pitch deleted successfully!');
+      } else {
+        alert(data.message || 'Failed to delete pitch');
+      }
+    } catch (error) {
+      console.error('Error deleting pitch:', error);
+      alert('Network error. Please try again.');
+    } finally {
+      setDeletingPitchId(null);
+    }
   };
 
   const getProfileCompletionPercentage = () => {
@@ -266,7 +342,13 @@ const Profile = () => {
                     </div>
                     <div className="pitch-actions">
                       <a href={`/pitches/${pitch._id}`} className="btn-secondary">View Details</a>
-                      <button className="btn-primary">Edit Pitch</button>
+                      <button 
+                        className="btn-danger"
+                        onClick={() => handleDeletePitch(pitch._id)}
+                        disabled={deletingPitchId === pitch._id}
+                      >
+                        {deletingPitchId === pitch._id ? 'Deleting...' : 'Delete Pitch'}
+                      </button>
                     </div>
                   </div>
                 )) : (
@@ -318,8 +400,8 @@ const Profile = () => {
                   ×
                 </button>
               </div>
-              <form onSubmit={handleEditSubmit} className="edit-profile-form">
-                <div className="form-group">
+              <form onSubmit={handleEditSubmit} className={`edit-profile-form ${isSubmitting ? 'form-submitting' : ''}`}>
+                <div className={`form-group ${formErrors.fullName ? 'has-error' : ''}`}>
                   <label>Full Name</label>
                   <input
                     type="text"
@@ -327,10 +409,17 @@ const Profile = () => {
                     value={editForm.fullName}
                     onChange={handleInputChange}
                     placeholder="Enter your full name"
+                    disabled={isSubmitting}
                   />
+                  {formErrors.fullName && (
+                    <div className="form-error">{formErrors.fullName}</div>
+                  )}
+                  <div className={`character-counter ${getCharacterCountInfo(editForm.fullName, null, 100).status}`}>
+                    {getCharacterCountInfo(editForm.fullName, null, 100).message}
+                  </div>
                 </div>
                 
-                <div className="form-group">
+                <div className={`form-group ${formErrors.phoneNumber ? 'has-error' : ''}`}>
                   <label>Phone Number</label>
                   <input
                     type="tel"
@@ -338,10 +427,17 @@ const Profile = () => {
                     value={editForm.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="Enter your phone number"
+                    disabled={isSubmitting}
                   />
+                  {formErrors.phoneNumber && (
+                    <div className="form-error">{formErrors.phoneNumber}</div>
+                  )}
+                  <div className={`character-counter ${getCharacterCountInfo(editForm.phoneNumber, null, 20).status}`}>
+                    {getCharacterCountInfo(editForm.phoneNumber, null, 20).message}
+                  </div>
                 </div>
                 
-                <div className="form-group">
+                <div className={`form-group ${formErrors.occupation ? 'has-error' : ''}`}>
                   <label>Occupation</label>
                   <input
                     type="text"
@@ -349,10 +445,17 @@ const Profile = () => {
                     value={editForm.occupation}
                     onChange={handleInputChange}
                     placeholder="Enter your occupation"
+                    disabled={isSubmitting}
                   />
+                  {formErrors.occupation && (
+                    <div className="form-error">{formErrors.occupation}</div>
+                  )}
+                  <div className={`character-counter ${getCharacterCountInfo(editForm.occupation, null, 100).status}`}>
+                    {getCharacterCountInfo(editForm.occupation, null, 100).message}
+                  </div>
                 </div>
                 
-                <div className="form-group">
+                <div className={`form-group ${formErrors.location ? 'has-error' : ''}`}>
                   <label>Location</label>
                   <input
                     type="text"
@@ -360,10 +463,17 @@ const Profile = () => {
                     value={editForm.location}
                     onChange={handleInputChange}
                     placeholder="Enter your location"
+                    disabled={isSubmitting}
                   />
+                  {formErrors.location && (
+                    <div className="form-error">{formErrors.location}</div>
+                  )}
+                  <div className={`character-counter ${getCharacterCountInfo(editForm.location, null, 100).status}`}>
+                    {getCharacterCountInfo(editForm.location, null, 100).message}
+                  </div>
                 </div>
                 
-                <div className="form-group">
+                <div className={`form-group ${formErrors.website ? 'has-error' : ''}`}>
                   <label>Website</label>
                   <input
                     type="url"
@@ -371,12 +481,16 @@ const Profile = () => {
                     value={editForm.website}
                     onChange={handleInputChange}
                     placeholder="Enter your website URL"
+                    disabled={isSubmitting}
                   />
+                  {formErrors.website && (
+                    <div className="form-error">{formErrors.website}</div>
+                  )}
                 </div>
                 
                 {user.role === 'entrepreneur' ? (
                   <>
-                    <div className="form-group">
+                    <div className={`form-group ${formErrors.companyName ? 'has-error' : ''}`}>
                       <label>Company Name</label>
                       <input
                         type="text"
@@ -384,10 +498,17 @@ const Profile = () => {
                         value={editForm.companyName}
                         onChange={handleInputChange}
                         placeholder="Enter your company name"
+                        disabled={isSubmitting}
                       />
+                      {formErrors.companyName && (
+                        <div className="form-error">{formErrors.companyName}</div>
+                      )}
+                      <div className={`character-counter ${getCharacterCountInfo(editForm.companyName, null, 100).status}`}>
+                        {getCharacterCountInfo(editForm.companyName, null, 100).message}
+                      </div>
                     </div>
                     
-                    <div className="form-group">
+                    <div className={`form-group ${formErrors.industry ? 'has-error' : ''}`}>
                       <label>Industry</label>
                       <input
                         type="text"
@@ -395,11 +516,18 @@ const Profile = () => {
                         value={editForm.industry}
                         onChange={handleInputChange}
                         placeholder="Enter your industry"
+                        disabled={isSubmitting}
                       />
+                      {formErrors.industry && (
+                        <div className="form-error">{formErrors.industry}</div>
+                      )}
+                      <div className={`character-counter ${getCharacterCountInfo(editForm.industry, null, 100).status}`}>
+                        {getCharacterCountInfo(editForm.industry, null, 100).message}
+                      </div>
                     </div>
                   </>
                 ) : (
-                  <div className="form-group">
+                  <div className={`form-group ${formErrors.linkedinUrl ? 'has-error' : ''}`}>
                     <label>LinkedIn URL</label>
                     <input
                       type="url"
@@ -407,19 +535,32 @@ const Profile = () => {
                       value={editForm.linkedinUrl}
                       onChange={handleInputChange}
                       placeholder="Enter your LinkedIn profile URL"
+                      disabled={isSubmitting}
                     />
+                    {formErrors.linkedinUrl && (
+                      <div className="form-error">{formErrors.linkedinUrl}</div>
+                    )}
                   </div>
                 )}
                 
-                <div className="form-group-full">
+                <div className={`form-group-full ${formErrors.bio ? 'has-error' : ''}`}>
                   <label>Bio</label>
-                  <textarea
-                    name="bio"
-                    value={editForm.bio}
-                    onChange={handleInputChange}
-                    placeholder="Tell us about yourself..."
-                    rows="4"
-                  />
+                  <div className="form-field-with-counter">
+                    <textarea
+                      name="bio"
+                      value={editForm.bio}
+                      onChange={handleInputChange}
+                      placeholder="Tell us about yourself..."
+                      rows="4"
+                      disabled={isSubmitting}
+                    />
+                    <div className={`form-field-counter character-counter ${getCharacterCountInfo(editForm.bio, null, 500).status}`}>
+                      {getCharacterCountInfo(editForm.bio, null, 500).message}
+                    </div>
+                  </div>
+                  {formErrors.bio && (
+                    <div className="form-error">{formErrors.bio}</div>
+                  )}
                 </div>
                 
                 <div className="form-actions">
@@ -427,11 +568,12 @@ const Profile = () => {
                     type="button" 
                     className="action-button"
                     onClick={() => setShowEditModal(false)}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="primary-cta-button">
-                    Save Changes
+                  <button type="submit" className="primary-cta-button" disabled={isSubmitting}>
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>

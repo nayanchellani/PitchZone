@@ -1,76 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
+import { API_ENDPOINTS } from '../config/api';
 import '../App.css';
 
 const Leaderboard = () => {
-  const [activeCategory, setActiveCategory] = useState('overall');
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const leaderboardData = [
-    {
-      rank: 1,
-      name: "TechVision AI",
-      founder: "Sarah Chen",
-      category: "AI/ML",
-      funding: "$5.2M",
-      growth: "+25%",
-      score: 98
-    },
-    {
-      rank: 2,
-      name: "GreenEnergy Solutions",
-      founder: "Marcus Johnson",
-      category: "GreenTech",
-      funding: "$4.8M",
-      growth: "+18%",
-      score: 95
-    },
-    {
-      rank: 3,
-      name: "HealthTech Pro",
-      founder: "Dr. Emily Rodriguez",
-      category: "HealthTech",
-      funding: "$4.1M",
-      growth: "+22%",
-      score: 92
-    },
-    {
-      rank: 4,
-      name: "FinanceFlow",
-      founder: "David Kim",
-      category: "FinTech",
-      funding: "$3.9M",
-      growth: "+15%",
-      score: 89
-    },
-    {
-      rank: 5,
-      name: "EduTech Revolution",
-      founder: "Lisa Thompson",
-      category: "EdTech",
-      funding: "$3.5M",
-      growth: "+20%",
-      score: 87
-    },
-    {
-      rank: 6,
-      name: "SmartLogistics",
-      founder: "Ahmed Hassan",
-      category: "Logistics",
-      funding: "$3.2M",
-      growth: "+12%",
-      score: 84
-    },
-    {
-      rank: 7,
-      name: "Your Startup",
-      founder: "You",
-      category: "FinTech",
-      funding: "$2.4M",
-      growth: "+15%",
-      score: 82,
-      isUser: true
-    }
-  ];
+  // Get current user info
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setCurrentUser(user);
+  }, []);
+
+  // Fetch leaderboard data
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        
+        // Fetch all active pitches and calculate leaderboard
+        const response = await fetch(`${API_ENDPOINTS.pitches}?status=Active&sortBy=raisedAmount&order=desc&limit=50`, {
+          headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          // Process pitches into leaderboard format
+          const processedData = data.pitches.map((pitch, index) => ({
+            rank: index + 1,
+            name: pitch.title,
+            founder: pitch.entrepreneur?.fullName || pitch.entrepreneur?.username,
+            category: pitch.category,
+            funding: `₹${(pitch.raisedAmount / 1000).toFixed(0)}K`,
+            targetFunding: `₹${(pitch.targetAmount / 1000).toFixed(0)}K`,
+            progress: Math.round((pitch.raisedAmount / pitch.targetAmount) * 100),
+            investors: pitch.totalInvestors || 0,
+            isUser: currentUser && pitch.entrepreneur?._id === currentUser._id
+          }));
+          
+          setLeaderboardData(processedData);
+        } else {
+          setError(data.message);
+        }
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        setError('Failed to fetch leaderboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, [currentUser]);
 
   const getRankIcon = (rank) => {
     switch(rank) {
@@ -81,62 +69,59 @@ const Leaderboard = () => {
     }
   };
 
+  const getUserRank = () => {
+    const userPitch = leaderboardData.find(item => item.isUser);
+    return userPitch ? userPitch.rank : null;
+  };
+
+  if (loading) {
+    return (
+      <div className="leaderboard-container">
+        <Navbar />
+        <div className="leaderboard-content">
+          <div className="loading">Loading leaderboard...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="leaderboard-container">
+        <Navbar />
+        <div className="leaderboard-content">
+          <div className="error">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="leaderboard-container">
       <Navbar />
       <div className="leaderboard-content">
         <div className="leaderboard-header">
           <h1 className="leaderboard-title">Startup Leaderboard</h1>
-          <p className="leaderboard-subtitle">Top performing startups this quarter</p>
+          <p className="leaderboard-subtitle">Top startups ranked by funding raised</p>
         </div>
 
-        <div className="leaderboard-categories">
-          <button 
-            className={`action-button ${activeCategory === 'overall' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('overall')}
-          >
-            Overall
-          </button>
-          <button 
-            className={`action-button ${activeCategory === 'funding' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('funding')}
-          >
-            Most Funded
-          </button>
-          <button 
-            className={`action-button ${activeCategory === 'growth' ? 'active' : ''}`}
-            onClick={() => setActiveCategory('growth')}
-          >
-            Fastest Growing
-          </button>
-        </div>
-
-        <div className="leaderboard-stats">
-          <div className="stat-card">
-            <h3>Your Rank</h3>
-            <div className="rank-display">#7</div>
-            <p>Out of 150 startups</p>
+        {getUserRank() && (
+          <div className="user-rank-card">
+            <h3>Your Position</h3>
+            <div className="rank-display">#{getUserRank()}</div>
+            <p>Out of {leaderboardData.length} active startups</p>
           </div>
-          <div className="stat-card">
-            <h3>Your Score</h3>
-            <div className="score-display">82</div>
-            <p>Performance index</p>
-          </div>
-          <div className="stat-card">
-            <h3>Next Goal</h3>
-            <div className="goal-display">#5</div>
-            <p>2 positions to climb</p>
-          </div>
-        </div>
+        )}
 
         <div className="leaderboard-table">
           <div className="table-header">
             <span>Rank</span>
             <span>Startup</span>
             <span>Category</span>
-            <span>Funding</span>
-            <span>Growth</span>
-            <span>Score</span>
+            <span>Raised</span>
+            <span>Target</span>
+            <span>Progress</span>
+            <span>Investors</span>
           </div>
           
           {leaderboardData.map(startup => (
@@ -150,7 +135,7 @@ const Leaderboard = () => {
               <div className="startup-cell">
                 <div className="startup-info">
                   <h4>{startup.name}</h4>
-                  <p>{startup.founder}</p>
+                  <p>by {startup.founder}</p>
                 </div>
               </div>
               <div className="category-cell">
@@ -159,39 +144,31 @@ const Leaderboard = () => {
               <div className="funding-cell">
                 <span className="funding-amount">{startup.funding}</span>
               </div>
-              <div className="growth-cell">
-                <span className="growth-indicator positive">{startup.growth}</span>
+              <div className="target-cell">
+                <span className="target-amount">{startup.targetFunding}</span>
               </div>
-              <div className="score-cell">
-                <div className="score-bar">
+              <div className="progress-cell">
+                <div className="progress-bar">
                   <div 
-                    className="score-fill" 
-                    style={{width: `${startup.score}%`}}
+                    className="progress-fill" 
+                    style={{width: `${Math.min(startup.progress, 100)}%`}}
                   ></div>
-                  <span className="score-text">{startup.score}</span>
                 </div>
+                <span className="progress-text">{startup.progress}%</span>
+              </div>
+              <div className="investors-cell">
+                <span className="investors-count">{startup.investors}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="leaderboard-insights">
-          <h3>📊 Performance Insights</h3>
-          <div className="insights-grid">
-            <div className="insight-card">
-              <h4>Funding Milestone</h4>
-              <p>You're 60% closer to reaching the top 5 funding bracket</p>
-            </div>
-            <div className="insight-card">
-              <h4>Growth Rate</h4>
-              <p>Your 15% growth rate is above the industry average of 12%</p>
-            </div>
-            <div className="insight-card">
-              <h4>Category Leader</h4>
-              <p>You're ranked #2 in the FinTech category</p>
-            </div>
+        {leaderboardData.length === 0 && (
+          <div className="empty-leaderboard">
+            <h3>No active pitches yet</h3>
+            <p>Be the first to create a pitch and claim the top spot!</p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

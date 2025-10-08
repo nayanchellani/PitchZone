@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import '../App.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import "../App.css";
 
 const EntrepreneurDashboard = () => {
   // Mock entrepreneur's active pitch using your format
@@ -14,27 +14,30 @@ const EntrepreneurDashboard = () => {
     investors: [
       { name: "Investor1", amount: 5000 },
       { name: "Investor2", amount: 3000 },
-      { name: "Investor3", amount: 4000 }
+      { name: "Investor3", amount: 4000 },
     ],
     feedback: [
       "Great idea! The market for educational tools is huge.",
       "Needs clearer revenue model. How will you monetize?",
       "Love the AI integration. What's your competitive advantage?",
-      "Impressive prototype. When do you plan to launch?"
-    ]
+      "Impressive prototype. When do you plan to launch?",
+    ],
   };
 
   const getProgressPercentage = () => {
-    return Math.min((activePitch.raisedAmount / activePitch.targetAmount) * 100, 100);
+    return Math.min(
+      (activePitch.raisedAmount / activePitch.targetAmount) * 100,
+      100
+    );
   };
 
   const handleEditPitch = () => {
-    alert('Edit pitch functionality would be implemented here');
+    alert("Edit pitch functionality would be implemented here");
   };
 
   const handleClosePitch = () => {
-    if (window.confirm('Are you sure you want to close this pitch?')) {
-      alert('Pitch closed successfully');
+    if (window.confirm("Are you sure you want to close this pitch?")) {
+      alert("Pitch closed successfully");
     }
   };
 
@@ -42,7 +45,9 @@ const EntrepreneurDashboard = () => {
     <div className="entrepreneur-dashboard">
       <div className="dashboard-header">
         <h1 className="dashboard-title">Entrepreneur Dashboard</h1>
-        <p className="dashboard-subtitle">Monitor your pitch performance and investor engagement</p>
+        <p className="dashboard-subtitle">
+          Monitor your pitch performance and investor engagement
+        </p>
       </div>
 
       {/* Active Pitch Card */}
@@ -60,7 +65,7 @@ const EntrepreneurDashboard = () => {
               </button>
             </div>
           </div>
-          
+
           <p className="pitch-description">{activePitch.description}</p>
 
           {/* Pitch Status Card */}
@@ -69,26 +74,34 @@ const EntrepreneurDashboard = () => {
             <div className="status-grid">
               <div className="status-item">
                 <span className="status-label">Raised</span>
-                <span className="status-value">₹{activePitch.raisedAmount.toLocaleString()}</span>
+                <span className="status-value">
+                  ₹{activePitch.raisedAmount.toLocaleString()}
+                </span>
               </div>
               <div className="status-item">
                 <span className="status-label">Target</span>
-                <span className="status-value">₹{activePitch.targetAmount.toLocaleString()}</span>
+                <span className="status-value">
+                  ₹{activePitch.targetAmount.toLocaleString()}
+                </span>
               </div>
               <div className="status-item">
                 <span className="status-label">% Achieved</span>
-                <span className="status-value">{getProgressPercentage().toFixed(1)}%</span>
+                <span className="status-value">
+                  {getProgressPercentage().toFixed(1)}%
+                </span>
               </div>
               <div className="status-item">
                 <span className="status-label"># of Investors</span>
-                <span className="status-value">{activePitch.investors.length}</span>
+                <span className="status-value">
+                  {activePitch.investors.length}
+                </span>
               </div>
             </div>
-            
+
             <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{width: `${getProgressPercentage()}%`}}
+              <div
+                className="progress-fill"
+                style={{ width: `${getProgressPercentage()}%` }}
               ></div>
             </div>
           </div>
@@ -110,7 +123,9 @@ const EntrepreneurDashboard = () => {
               </div>
               <div className="feedback-content">
                 <p>{comment}</p>
-                <span className="feedback-time">{Math.floor(Math.random() * 24)} hours ago</span>
+                <span className="feedback-time">
+                  {Math.floor(Math.random() * 24)} hours ago
+                </span>
               </div>
             </div>
           ))}
@@ -127,7 +142,9 @@ const EntrepreneurDashboard = () => {
                 <span className="investor-avatar">👤</span>
                 <span className="investor-name">{investor.name}</span>
               </div>
-              <span className="investor-amount">₹{investor.amount.toLocaleString()}</span>
+              <span className="investor-amount">
+                ₹{investor.amount.toLocaleString()}
+              </span>
             </div>
           ))}
         </div>

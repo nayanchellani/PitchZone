@@ -2,11 +2,11 @@ const express = require('express');
 const { body, validationResult, param } = require('express-validator');
 const Pitch = require('../models/Pitch');
 const User = require('../models/User');
-const { 
-  authenticateToken, 
-  requireEntrepreneur, 
-  requireInvestor, 
-  optionalAuth 
+const {
+  authenticateToken,
+  requireEntrepreneur,
+  requireInvestor,
+  optionalAuth
 } = require('../middleware/auth');
 
 const router = express.Router();
@@ -37,7 +37,11 @@ router.post('/create', [
   body('equityOffered')
     .optional()
     .isFloat({ min: 0.1, max: 100 })
-    .withMessage('Equity offered must be between 0.1% and 100%')
+    .withMessage('Equity offered must be between 0.1% and 100%'),
+  body('imageUrl')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage('Please provide a valid image URL')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -50,7 +54,7 @@ router.post('/create', [
       });
     }
 
-    const { title, description, targetAmount, category, equityOffered, stage, deadline } = req.body;
+    const { title, description, targetAmount, category, equityOffered, stage, deadline, imageUrl } = req.body;
 
     // Check if entrepreneur already has an active pitch
     const existingPitch = await Pitch.findOne({
@@ -74,6 +78,7 @@ router.post('/create', [
       category: category || 'Other',
       equityOffered,
       stage,
+      imageUrl: imageUrl || undefined,
       deadline: deadline ? new Date(deadline) : undefined
     });
 
@@ -102,10 +107,10 @@ router.post('/create', [
 // @access  Public
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { 
-      status = 'Active', 
-      category, 
-      sortBy = 'createdAt', 
+    const {
+      status = 'Active',
+      category,
+      sortBy = 'createdAt',
       order = 'desc',
       page = 1,
       limit = 10,
@@ -114,11 +119,11 @@ router.get('/', optionalAuth, async (req, res) => {
 
     // Build query
     const query = {};
-    
+
     if (status && status !== 'all') {
       query.status = status;
     }
-    
+
     if (category && category !== 'all') {
       query.category = category;
     }
@@ -500,12 +505,11 @@ router.delete('/:id', [
       });
     }
 
-    // Instead of deleting, mark as closed
-    pitch.status = 'Closed';
-    await pitch.save();
+    // Actually delete the pitch from database
+    await Pitch.findByIdAndDelete(req.params.id);
 
     res.json({
-      message: 'Pitch closed successfully',
+      message: 'Pitch deleted successfully',
       success: true
     });
 

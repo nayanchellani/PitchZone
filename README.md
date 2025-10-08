@@ -14,12 +14,14 @@ A full-stack web application where entrepreneurs can pitch their ideas and inves
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - React 18
 - React Router
 - Modern CSS with custom animations
 - Responsive design
 
 ### Backend
+
 - Node.js & Express
 - MongoDB with Mongoose
 - JWT Authentication
@@ -29,23 +31,27 @@ A full-stack web application where entrepreneurs can pitch their ideas and inves
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js (v16 or higher)
 - MongoDB (local or Atlas)
 - Git
 
 ### 1. Clone the Repository
+
 ```bash
 git clone <repository-url>
 cd pitchzone
 ```
 
 ### 2. Backend Setup
+
 ```bash
 cd server
 npm install
 ```
 
 Create `.env` file in server directory:
+
 ```env
 MONGO_URI=mongodb://localhost:27017/pitchzone
 JWT_SECRET=your_super_secret_jwt_key_here
@@ -54,16 +60,19 @@ NODE_ENV=development
 ```
 
 Create admin user:
+
 ```bash
 npm run create-admin
 ```
 
 Start backend:
+
 ```bash
 npm run dev
 ```
 
 ### 3. Frontend Setup
+
 ```bash
 cd client
 npm install
@@ -71,6 +80,7 @@ npm run dev
 ```
 
 ### 4. Access the Application
+
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:5000
 - **Admin Panel**: Login with admin@pitchzone.com / admin123
@@ -78,18 +88,21 @@ npm run dev
 ## 📱 Usage
 
 ### For Entrepreneurs
+
 1. **Sign Up**: Create an account as an entrepreneur
 2. **Complete Profile**: Fill in your personal and company information
 3. **Create Pitch**: Submit your startup pitch with funding goals
 4. **Track Progress**: Monitor investments and feedback
 
 ### For Investors
+
 1. **Sign Up**: Create an account as an investor (use access code: `INVESTOR_ACCESS_2024`)
 2. **Browse Pitches**: Explore available startup pitches
 3. **Invest**: Invest in promising startups
 4. **Track Portfolio**: Monitor your investments
 
 ### For Admins
+
 1. **Login**: Use admin credentials
 2. **Dashboard**: View system statistics
 3. **Manage Users**: View, edit, or delete users
@@ -98,6 +111,7 @@ npm run dev
 ## 🎨 Design Features
 
 ### Color Scheme
+
 - **Primary Dark**: #0B0C10 (Very Dark Gray/Near Black)
 - **Secondary Dark**: #1F2833 (Dark Slate Gray/Blue)
 - **Light Gray**: #C5C6C7 (Light Gray)
@@ -105,6 +119,7 @@ npm run dev
 - **Teal**: #45A29E (Teal/Seafoam Green)
 
 ### Animations
+
 - **Auth Buttons**: Smooth underline animation on hover
 - **Action Buttons**: Background fill animation with scale effect
 - **Cards**: Lift effect with glow shadows
@@ -130,12 +145,14 @@ pitchzone/
 ## 🔧 API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 - `GET /api/auth/me` - Get current user
 - `PUT /api/auth/profile` - Update profile
 
 ### Pitches
+
 - `GET /api/pitches` - Get all pitches
 - `POST /api/pitches/create` - Create new pitch
 - `GET /api/pitches/:id` - Get pitch details
@@ -143,6 +160,7 @@ pitchzone/
 - `GET /api/pitches/my/pitches` - Get user's pitches
 
 ### Admin
+
 - `GET /api/admin/dashboard` - Admin dashboard stats
 - `GET /api/admin/users` - Get all users
 - `GET /api/admin/pitches` - Get all pitches
@@ -163,11 +181,13 @@ pitchzone/
 ### Common Issues
 
 1. **"Failed to fetch" errors**
+
    - Make sure backend is running on port 5000
    - Check MongoDB connection
    - Verify CORS settings
 
 2. **Database connection errors**
+
    - Ensure MongoDB is running
    - Check MONGO_URI in .env file
    - Try using MongoDB Atlas for cloud database
@@ -178,6 +198,7 @@ pitchzone/
    - Check JWT_SECRET in .env
 
 ### Debug Steps
+
 1. Check browser console for errors
 2. Verify backend logs for API errors
 3. Test API endpoints manually
@@ -186,6 +207,7 @@ pitchzone/
 ## 📝 Environment Variables
 
 ### Server (.env)
+
 ```env
 MONGO_URI=mongodb://localhost:27017/pitchzone
 JWT_SECRET=your_super_secret_jwt_key_here

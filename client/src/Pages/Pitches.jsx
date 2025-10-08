@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
+import { cleanFormData, validatePitchForm, getCharacterCountInfo } from '../utils/formValidation';
+import ImagePreview from '../components/ImagePreview';
 import '../App.css';
 
 const Pitches = () => {
@@ -12,13 +14,16 @@ const Pitches = () => {
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newPitch, setNewPitch] = useState({
     title: '',
     description: '',
     targetAmount: '',
     equityOffered: '',
     category: 'Technology',
-    stage: 'Idea'
+    stage: 'Idea',
+    imageUrl: ''
   });
 
   const categories = ['all', 'Technology', 'Healthcare', 'Education', 'Finance', 'E-commerce', 'Food & Beverage', 'Entertainment', 'Other'];
@@ -44,6 +49,8 @@ const Pitches = () => {
 
       const data = await response.json();
       if (data.success) {
+        console.log('Fetched pitches:', data.pitches);
+        // Images are now working properly
         setPitches(data.pitches);
       } else {
         setError(data.message);
@@ -70,15 +77,30 @@ const Pitches = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form data
+    const validation = validatePitchForm(newPitch);
+    if (!validation.isValid) {
+      setFormErrors(validation.errors);
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setFormErrors({});
+    
     try {
       const token = localStorage.getItem('token');
+      
+      // Clean form data - remove empty strings
+      const cleanedData = cleanFormData(newPitch);
+      
       const response = await fetch(`${API_ENDPOINTS.pitches}/create`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newPitch),
+        body: JSON.stringify(cleanedData),
       });
 
       const data = await response.json();
@@ -91,15 +113,27 @@ const Pitches = () => {
           targetAmount: '',
           equityOffered: '',
           category: 'Technology',
-          stage: 'Idea'
+          stage: 'Idea',
+          imageUrl: ''
         });
         fetchPitches(); // Refresh the pitches list
       } else {
-        alert(data.message || 'Failed to create pitch');
+        // Handle backend validation errors
+        if (data.errors && Array.isArray(data.errors)) {
+          const backendErrors = {};
+          data.errors.forEach(error => {
+            backendErrors[error.path || error.param] = error.msg;
+          });
+          setFormErrors(backendErrors);
+        } else {
+          alert(data.message || 'Failed to create pitch');
+        }
       }
     } catch (error) {
       console.error('Error creating pitch:', error);
-      alert('Failed to create pitch');
+      alert('Network error. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -109,6 +143,14 @@ const Pitches = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   return (
@@ -169,8 +211,8 @@ const Pitches = () => {
                   ×
                 </button>
               </div>
-              <form onSubmit={handleFormSubmit} className="pitch-form">
-                <div className="form-group">
+              <form onSubmit={handleFormSubmit} className={`pitch-form ${isSubmitting ? 'form-submitting' : ''}`}>
+                <div className={`form-group ${formErrors.title ? 'has-error' : ''}`}>
                   <label>Pitch Title *</label>
                   <input
                     type="text"
@@ -178,20 +220,55 @@ const Pitches = () => {
                     value={newPitch.title}
                     onChange={handleInputChange}
                     placeholder="Enter your pitch title"
+                    disabled={isSubmitting}
                     required
                   />
+                  {formErrors.title && (
+                    <div className="form-error">{formErrors.title}</div>
+                  )}
+                  <div className={`character-counter ${getCharacterCountInfo(newPitch.title, 5, 100).status}`}>
+                    {getCharacterCountInfo(newPitch.title, 5, 100).message}
+                  </div>
                 </div>
                 
-                <div className="form-group">
+                <div className={`form-group ${formErrors.description ? 'has-error' : ''}`}>
                   <label>Description *</label>
-                  <textarea
-                    name="description"
-                    value={newPitch.description}
+                  <div className="form-field-with-counter">
+                    <textarea
+                      name="description"
+                      value={newPitch.description}
+                      onChange={handleInputChange}
+                      placeholder="Describe your business idea and its unique value proposition"
+                      rows="4"
+                      disabled={isSubmitting}
+                      required
+                    />
+                    <div className={`form-field-counter character-counter ${getCharacterCountInfo(newPitch.description, 20, 2000).status}`}>
+                      {getCharacterCountInfo(newPitch.description, 20, 2000).message}
+                    </div>
+                  </div>
+                  {formErrors.description && (
+                    <div className="form-error">{formErrors.description}</div>
+                  )}
+                </div>
+                
+                <div className={`form-group ${formErrors.imageUrl ? 'has-error' : ''}`}>
+                  <label>Product Image URL</label>
+                  <input
+                    type="url"
+                    name="imageUrl"
+                    value={newPitch.imageUrl}
                     onChange={handleInputChange}
-                    placeholder="Describe your business idea and its unique value proposition"
-                    rows="4"
-                    required
+                    placeholder="Enter image URL for your product/service"
+                    disabled={isSubmitting}
                   />
+                  <small>Optional: Add an image to make your pitch more attractive. You can use URLs from image hosting sites, social media, or cloud storage.</small>
+                  {formErrors.imageUrl && (
+                    <div className="form-error">{formErrors.imageUrl}</div>
+                  )}
+                  {newPitch.imageUrl && (
+                    <ImagePreview imageUrl={newPitch.imageUrl} alt="Pitch preview" />
+                  )}
                 </div>
                 
                 <div className="form-row">
@@ -232,7 +309,7 @@ const Pitches = () => {
                 </div>
                 
                 <div className="form-row">
-                  <div className="form-group">
+                  <div className={`form-group ${formErrors.targetAmount ? 'has-error' : ''}`}>
                     <label>Target Amount *</label>
                     <div className="input-with-currency">
                       <span className="currency-symbol">₹</span>
@@ -243,13 +320,18 @@ const Pitches = () => {
                         onChange={handleInputChange}
                         placeholder="1000000"
                         min="1000"
+                        max="100000000"
+                        disabled={isSubmitting}
                         required
                       />
                     </div>
                     <small>Minimum: ₹1,000 - Maximum: ₹10 crores</small>
+                    {formErrors.targetAmount && (
+                      <div className="form-error">{formErrors.targetAmount}</div>
+                    )}
                   </div>
                   
-                  <div className="form-group">
+                  <div className={`form-group ${formErrors.equityOffered ? 'has-error' : ''}`}>
                     <label>Equity Offered (%)</label>
                     <div className="input-with-percent">
                       <input
@@ -261,10 +343,14 @@ const Pitches = () => {
                         min="0.1"
                         max="100"
                         step="0.1"
+                        disabled={isSubmitting}
                       />
                       <span className="percent-symbol">%</span>
                     </div>
                     <small>Optional: Percentage of equity you're willing to offer</small>
+                    {formErrors.equityOffered && (
+                      <div className="form-error">{formErrors.equityOffered}</div>
+                    )}
                   </div>
                 </div>
                 
@@ -273,11 +359,12 @@ const Pitches = () => {
                     type="button" 
                     className="action-button"
                     onClick={() => setShowCreateForm(false)}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="primary-cta-button">
-                    Create Pitch
+                  <button type="submit" className="primary-cta-button" disabled={isSubmitting}>
+                    {isSubmitting ? 'Creating...' : 'Create Pitch'}
                   </button>
                 </div>
               </form>
@@ -294,12 +381,22 @@ const Pitches = () => {
             {pitches.map(pitch => (
               <div key={pitch._id} className="marketplace-pitch-card">
                 <div className="pitch-image">
-                  <div className="pitch-placeholder">
+                  {pitch.imageUrl && pitch.imageUrl.trim() !== '' ? (
+                    <img 
+                      src={pitch.imageUrl} 
+                      alt={pitch.title}
+                      className="pitch-card-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentNode.querySelector('.pitch-placeholder').style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="pitch-placeholder" 
+                    style={{ display: (pitch.imageUrl && pitch.imageUrl.trim() !== '') ? 'none' : 'flex' }}
+                  >
                     <span className="pitch-icon">🚀</span>
-                  </div>
-                  <div className="pitch-badges">
-                    <span className="badge status">{pitch.status}</span>
-                    {pitch.stage && <span className="badge stage">{pitch.stage}</span>}
                   </div>
                 </div>
                 

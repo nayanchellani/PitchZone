@@ -211,9 +211,38 @@ router.put('/profile', [
     .isLength({ max: 500 })
     .withMessage('Bio cannot exceed 500 characters'),
   body('linkedinUrl')
-    .optional()
+    .optional({ checkFalsy: true })
     .isURL()
-    .withMessage('Please provide a valid LinkedIn URL')
+    .withMessage('Please provide a valid LinkedIn URL'),
+  body('phoneNumber')
+    .optional()
+    .trim()
+    .isLength({ max: 20 })
+    .withMessage('Phone number cannot exceed 20 characters'),
+  body('occupation')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Occupation cannot exceed 100 characters'),
+  body('location')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Location cannot exceed 100 characters'),
+  body('website')
+    .optional({ checkFalsy: true })
+    .isURL()
+    .withMessage('Please provide a valid website URL'),
+  body('companyName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Company name cannot exceed 100 characters'),
+  body('industry')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Industry cannot exceed 100 characters')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -226,7 +255,7 @@ router.put('/profile', [
       });
     }
 
-    const allowedUpdates = ['fullName', 'bio', 'linkedinUrl', 'companyName', 'industry'];
+    const allowedUpdates = ['fullName', 'bio', 'linkedinUrl', 'companyName', 'industry', 'phoneNumber', 'occupation', 'location', 'website'];
     const updates = {};
 
     // Only include allowed fields that are present in request

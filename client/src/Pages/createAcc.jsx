@@ -109,7 +109,7 @@ const CreateAcc = () => {
 
       if (!formData.accessCode.trim()) {
         newErrors.accessCode = "Access code is required for investors";
-      } else if (formData.accessCode !== "INVESTOR_ACCESS_2024") {
+      } else if (formData.accessCode !== "0000") {
         newErrors.accessCode = "Invalid access code";
       }
     }
