@@ -1941,12 +1941,20 @@ body {
     var(--secondary-dark) 100%
   );
   display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
+  color: var(--light-gray);
+}
+
+.startingpoint-content {
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: var(--spacing-xl);
-  color: var(--light-gray);
+  max-width: 1200px;
+  width: 100%;
 }
 
 .startingpoint-title {
