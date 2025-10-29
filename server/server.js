@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
     endpoints: {
       auth: '/api/auth',
       pitches: '/api/pitches',
-      users: '/api/users'
+      admin: '/api/admin'
     }
   });
 });
