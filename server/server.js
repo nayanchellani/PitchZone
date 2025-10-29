@@ -1,6 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); 
+const cors = require('cors');
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -9,7 +9,6 @@ dotenv.config();
 // Import routes
 const authRoutes = require('./routes/auth');
 const pitchRoutes = require('./routes/pitches');
-const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 
 // Initialize Express app
@@ -23,19 +22,18 @@ app.use(cors({
 }));
 
 // Middleware
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/pitches', pitchRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Basic route for testing
 app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Welcome to PitchZone API!', 
+  res.json({
+    message: 'Welcome to PitchZone API!',
     status: 'Server is running successfully',
     endpoints: {
       auth: '/api/auth',
@@ -46,16 +44,16 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, _req, res, _next) => {
   console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!', 
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' 
+  res.status(500).json({
+    message: 'Something went wrong!',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
 // 404 handler
-app.use('*', (req, res) => {
+app.use('*', (_req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
@@ -81,7 +79,7 @@ connectDB().then(() => {
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
+process.on('unhandledRejection', (err) => {
   console.log('Unhandled Promise Rejection:', err.message);
   process.exit(1);
 });

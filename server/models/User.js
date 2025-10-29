@@ -136,9 +136,6 @@ userSchema.statics.findByEmail = function(email) {
   return this.findOne({ email: email.toLowerCase() });
 };
 
-// Index for better query performance
-// Note: email and username already have indexes due to unique: true
-// userSchema.index({ email: 1 });  // Removed: duplicate of unique index
-// userSchema.index({ username: 1 });  // Removed: duplicate of unique index
+
 
 module.exports = mongoose.model('User', userSchema);

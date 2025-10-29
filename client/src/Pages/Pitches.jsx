@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
@@ -49,8 +49,7 @@ const Pitches = () => {
 
       const data = await response.json();
       if (data.success) {
-        console.log('Fetched pitches:', data.pitches);
-        // Images are now working properly
+  
         setPitches(data.pitches);
       } else {
         setError(data.message);

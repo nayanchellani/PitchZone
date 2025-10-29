@@ -12,8 +12,7 @@ export const API_ENDPOINTS = {
   // Pitch endpoints
   pitches: `${API_BASE_URL}/api/pitches`,
   
-  // User endpoints
-  users: `${API_BASE_URL}/api/users`,
+
   
   // Admin endpoints
   adminDashboard: `${API_BASE_URL}/api/admin/dashboard`,

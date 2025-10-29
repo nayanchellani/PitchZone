@@ -1506,32 +1506,7 @@ body {
   transform: scale(1.05);
 }
 
-.pitch-badges {
-  position: absolute;
-  top: var(--spacing-md);
-  left: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
 
-.badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-}
-
-.badge.trending {
-  background: rgba(251, 191, 36, 0.9);
-  color: var(--primary-dark);
-}
-
-.badge.featured {
-  background: rgba(102, 252, 241, 0.9);
-  color: var(--primary-dark);
-}
 
 .pitch-content {
   padding: var(--spacing-lg);
@@ -2459,37 +2434,7 @@ tbody tr:hover {
   }
 }
 
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
 
 @keyframes spin {
   to {
@@ -3037,15 +2982,7 @@ tbody tr:hover {
   opacity: 0.7;
 }
 
-.badge.status {
-  background: rgba(69, 162, 158, 0.2);
-  color: var(--teal);
-}
 
-.badge.stage {
-  background: rgba(102, 252, 241, 0.2);
-  color: var(--vibrant-cyan);
-}
 
 /* Responsive Design for Pitch Detail */
 @media (max-width: 768px) {
@@ -3562,10 +3499,7 @@ tbody tr:hover {
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+
 
 .image-preview-success {
   text-align: center;
@@ -3932,23 +3866,7 @@ hanced Pitch Card Image Styles */
   flex-direction: column;
 }
 
-.badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-align: center;
-}
-
-.badge.status {
-  background-color: #28a745;
-  color: white;
-}
-
-.badge.stage {
-  background-color: #17a2b8;
-  color: white;
-}/* Pitc
+/* Pitc
 h Card Image Fixes */
 .pitch-card-image {
   width: 100%;

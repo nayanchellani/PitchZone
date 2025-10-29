@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api'; // ✅ Import API config
 import '../App.css';
@@ -16,7 +16,7 @@ const Login = () => {
     setErrors({});
     
     try {
-      console.log('Attempting login with:', { email }); // ✅ Debug log
+
       
       // ✅ FIXED: Use API_ENDPOINTS.login instead of hardcoded URL
       const response = await fetch(API_ENDPOINTS.login, {
@@ -28,7 +28,7 @@ const Login = () => {
       });
 
       const data = await response.json();
-      console.log('Login response:', data); // ✅ Debug log
+
 
       if (data.success) {
         // Store user data and token
