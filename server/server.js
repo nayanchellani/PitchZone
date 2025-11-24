@@ -18,6 +18,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
+  'https://pitch-zone.vercel.app/',
   process.env.FRONTEND_URL // Production frontend URL
 ].filter(Boolean);
 
