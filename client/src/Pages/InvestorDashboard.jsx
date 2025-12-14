@@ -1,153 +1,181 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import '../App.css';
 
 const InvestorDashboard = () => {
-  // Mock investor data using your format
-  const investorStats = {
-    totalInvested: 25000,
-    pitchesFunded: 3
+  const [myInvestments, setMyInvestments] = useState([]);
+  const [recommendedPitches, setRecommendedPitches] = useState([]);
+  const [stats, setStats] = useState({ totalInvested: 0, pitchesFunded: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      // Fetch all pitches
+      const response = await fetch(`${API_BASE_URL}/pitches?status=Active&limit=50`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const allPitches = data.pitches;
+
+        // Filter pitches where user has invested
+        const invested = allPitches.filter(pitch =>
+          pitch.investors.some(inv => inv.userId._id === userId)
+        );
+
+        // Calculate stats
+        let totalInvested = 0;
+        invested.forEach(pitch => {
+          const myInv = pitch.investors.find(inv => inv.userId._id === userId);
+          if (myInv) totalInvested += myInv.amount;
+        });
+
+        setMyInvestments(invested);
+        setStats({
+          totalInvested,
+          pitchesFunded: invested.length,
+        });
+
+        // Get pitches where user hasn't invested (recommended)
+        const notInvested = allPitches.filter(
+          pitch => !pitch.investors.some(inv => inv.userId._id === userId)
+        ).slice(0, 5);
+
+        setRecommendedPitches(notInvested);
+      }
+    } catch (err) {
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Mock investments (pitches they invested in)
-  const myInvestments = [
-    {
-      id: 1,
-      title: "AI Notes Summarizer",
-      description: "App that converts lecture notes into flashcards.",
-      targetAmount: 50000,
-      raisedAmount: 12000,
-      entrepreneur: { name: "Nayan", profile: "👤" },
-      myInvestment: 5000
-    },
-    {
-      id: 2,
-      title: "Smart Fitness Tracker",
-      description: "Wearable device that tracks health metrics.",
-      targetAmount: 75000,
-      raisedAmount: 30000,
-      entrepreneur: { name: "Priya", profile: "👤" },
-      myInvestment: 10000
-    },
-    {
-      id: 3,
-      title: "Eco-Friendly Packaging",
-      description: "Biodegradable packaging solution for e-commerce.",
-      targetAmount: 40000,
-      raisedAmount: 25000,
-      entrepreneur: { name: "Rahul", profile: "👤" },
-      myInvestment: 8000
-    }
-  ];
+  const getMyInvestment = (pitch) => {
+    const userId = localStorage.getItem('userId');
+    const investment = pitch.investors.find(inv => inv.userId._id === userId);
+    return investment ? investment.amount : 0;
+  };
 
-  // Mock recommended pitches (open pitches to explore)
-  const recommendedPitches = [
-    {
-      id: 4,
-      title: "Virtual Reality Learning",
-      description: "VR platform for immersive education.",
-      targetAmount: 60000,
-      raisedAmount: 15000,
-      entrepreneur: { name: "Sarah", profile: "👤" }
-    },
-    {
-      id: 5,
-      title: "Food Waste Reducer",
-      description: "App that helps reduce household food waste.",
-      targetAmount: 35000,
-      raisedAmount: 8000,
-      entrepreneur: { name: "Mike", profile: "👤" }
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div className="loading">Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="investor-dashboard">
+    <div className="dashboard-container">
       <div className="dashboard-header">
         <h1 className="dashboard-title">Investor Dashboard</h1>
         <p className="dashboard-subtitle">Track your investments and discover new opportunities</p>
       </div>
 
-      {/* Analytics Cards */}
-      <div className="analytics-grid">
-        <div className="analytics-card">
-          <div className="analytics-icon">💰</div>
-          <div className="analytics-content">
-            <h3>Total Invested</h3>
-            <div className="analytics-number">₹{investorStats.totalInvested.toLocaleString()}</div>
+      <div className="dashboard-grid">
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>💰 Total Invested</h3>
+          </div>
+          <div className="card-number">₹{stats.totalInvested.toLocaleString()}</div>
+        </div>
+
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h3>📊 Pitches Funded</h3>
+          </div>
+          <div className="card-number">{stats.pitchesFunded}</div>
+        </div>
+      </div>
+
+      {myInvestments.length > 0 && (
+        <div className="section">
+          <h2>My Investments</h2>
+          <div className="cards-list">
+            {myInvestments.map(pitch => (
+              <div key={pitch._id} className="pitch-card">
+                <div className="card-header">
+                  <h3>{pitch.title}</h3>
+                  <span className="badge">
+                    My Investment: ₹{getMyInvestment(pitch).toLocaleString()}
+                  </span>
+                </div>
+                <p className="description">{pitch.description}</p>
+                <div className="progress-section">
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill" 
+                      style={{width: `${(pitch.raisedAmount / pitch.targetAmount) * 100}%`}}
+                    ></div>
+                  </div>
+                  <div className="progress-info">
+                    <span>₹{pitch.raisedAmount.toLocaleString()} / ₹{pitch.targetAmount.toLocaleString()}</span>
+                    <span>{((pitch.raisedAmount / pitch.targetAmount) * 100).toFixed(1)}% funded</span>
+                  </div>
+                </div>
+                <div className="card-footer">
+                  <span className="info">
+                    👤 {pitch.entrepreneur.username}
+                  </span>
+                  <Link to={`/pitches/${pitch._id}`} className="action-button">
+                    View Details
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      )}
 
-        <div className="analytics-card">
-          <div className="analytics-icon">📊</div>
-          <div className="analytics-content">
-            <h3>Pitches Funded</h3>
-            <div className="analytics-number">{investorStats.pitchesFunded}</div>
+      {recommendedPitches.length > 0 && (
+        <div className="section">
+          <h2>Recommended Pitches</h2>
+          <div className="cards-list">
+            {recommendedPitches.map(pitch => (
+              <div key={pitch._id} className="pitch-card">
+                <h3>{pitch.title}</h3>
+                <p className="description">{pitch.description}</p>
+                <div className="stats">
+                  <span>Target: ₹{pitch.targetAmount.toLocaleString()}</span>
+                  <span>Raised: ₹{pitch.raisedAmount.toLocaleString()}</span>
+                </div>
+                <div className="card-footer">
+                  <span className="info">
+                    👤 {pitch.entrepreneur.username}
+                  </span>
+                  <Link to={`/pitches/${pitch._id}`} className="action-button">
+                    Explore
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
+          <Link to="/pitches" className="view-all">
+            View All Pitches →
+          </Link>
         </div>
-      </div>
+      )}
 
-      {/* My Investments Section */}
-      <div className="investments-section">
-        <h2>My Investments</h2>
-        <div className="investments-list">
-          {myInvestments.map(investment => (
-            <div key={investment.id} className="investment-card">
-              <div className="investment-header">
-                <h3>{investment.title}</h3>
-                <span className="my-investment">My Investment: ₹{investment.myInvestment.toLocaleString()}</span>
-              </div>
-              <p className="investment-description">{investment.description}</p>
-              <div className="investment-progress">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{width: `${(investment.raisedAmount / investment.targetAmount) * 100}%`}}
-                  ></div>
-                </div>
-                <div className="progress-info">
-                  <span>₹{investment.raisedAmount.toLocaleString()} / ₹{investment.targetAmount.toLocaleString()}</span>
-                  <span>{((investment.raisedAmount / investment.targetAmount) * 100).toFixed(1)}% funded</span>
-                </div>
-              </div>
-              <div className="investment-footer">
-                <span className="entrepreneur-info">
-                  {investment.entrepreneur.profile} {investment.entrepreneur.name}
-                </span>
-                <Link to={`/pitches/${investment.id}`} className="view-details-btn">
-                  View Details
-                </Link>
-              </div>
-            </div>
-          ))}
+      {myInvestments.length === 0 && recommendedPitches.length === 0 && (
+        <div className="empty-state">
+          <p>No pitches available at the moment</p>
+          <Link to="/pitches" className="action-button">
+            Browse Pitches
+          </Link>
         </div>
-      </div>
-
-      {/* Recommended Pitches Section */}
-      <div className="recommended-section">
-        <h2>Recommended Pitches</h2>
-        <div className="recommended-list">
-          {recommendedPitches.map(pitch => (
-            <div key={pitch.id} className="recommended-card">
-              <h3>{pitch.title}</h3>
-              <p>{pitch.description}</p>
-              <div className="recommended-stats">
-                <span>Target: ₹{pitch.targetAmount.toLocaleString()}</span>
-                <span>Raised: ₹{pitch.raisedAmount.toLocaleString()}</span>
-              </div>
-              <div className="recommended-footer">
-                <span className="entrepreneur-info">
-                  {pitch.entrepreneur.profile} {pitch.entrepreneur.name}
-                </span>
-                <Link to={`/pitches/${pitch.id}`} className="explore-btn">
-                  Explore
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
-        <Link to="/pitches" className="view-all-pitches">
-          View All Pitches →
-        </Link>
-      </div>
+      )}
     </div>
   );
 };
