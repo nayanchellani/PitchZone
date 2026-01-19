@@ -10,6 +10,7 @@ import Leaderboard from "./Pages/Leaderboard";
 import Profile from "./Pages/Profile";
 import AdminDashboard from "./Pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ToastProvider } from "./context/ToastContext";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 function App() {
@@ -84,7 +85,11 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  return (
+    <ToastProvider>
+      <RouterProvider router={router} />
+    </ToastProvider>
+  );
 }
 
 export default App;

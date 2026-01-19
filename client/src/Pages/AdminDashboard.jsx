@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
+import { useToast } from '../context/ToastContext';
 import '../App.css';
 
 const AdminDashboard = () => {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [dashboardData, setDashboardData] = useState(null);
   const [users, setUsers] = useState([]);
@@ -109,7 +111,7 @@ const AdminDashboard = () => {
       const data = await response.json();
       if (data.success) {
         setUsers(users.filter(user => user._id !== userId));
-        alert('User deleted successfully');
+        showToast('User deleted successfully', 'success', 3000);
       } else {
         alert(data.message);
       }
@@ -134,7 +136,7 @@ const AdminDashboard = () => {
       const data = await response.json();
       if (data.success) {
         setPitches(pitches.filter(pitch => pitch._id !== pitchId));
-        alert('Pitch deleted successfully');
+        showToast('Pitch deleted successfully', 'pitch-deleted', 3000);
       } else {
         alert(data.message);
       }
@@ -143,11 +145,13 @@ const AdminDashboard = () => {
     }
   };
 
-  // Logout
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
+    showToast('Logged out successfully', 'logout', 3000);
+    setTimeout(() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login');
+    }, 500);
   };
 
   // Load data based on active tab

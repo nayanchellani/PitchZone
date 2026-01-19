@@ -4,9 +4,11 @@ import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
 import { cleanFormData, validatePitchForm, getCharacterCountInfo } from '../utils/formValidation';
 import ImagePreview from '../components/ImagePreview';
+import { useToast } from '../context/ToastContext';
 import '../App.css';
 
 const Pitches = () => {
+  const { showToast } = useToast();
   const [sortBy, setSortBy] = useState('createdAt');
   const [filterBy, setFilterBy] = useState('all');
   const [pitches, setPitches] = useState([]);
@@ -104,7 +106,7 @@ const Pitches = () => {
 
       const data = await response.json();
       if (data.success) {
-        alert('Pitch created successfully!');
+        showToast('Your pitch has been launched successfully!', 'pitch-created', 3000);
         setShowCreateForm(false);
         setNewPitch({
           title: '',
@@ -115,7 +117,7 @@ const Pitches = () => {
           stage: 'Idea',
           imageUrl: ''
         });
-        fetchPitches(); // Refresh the pitches list
+        fetchPitches();
       } else {
         // Handle backend validation errors
         if (data.errors && Array.isArray(data.errors)) {

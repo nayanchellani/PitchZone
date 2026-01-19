@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
+import { useToast } from '../context/ToastContext';
 import '../App.css';
 
 const PitchDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [pitch, setPitch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -79,11 +81,12 @@ const PitchDetail = () => {
 
       const data = await response.json();
       if (data.success) {
-        alert('Investment submitted successfully!');
+        showToast('Investment submitted successfully!', 'investment', 3000);
         setShowInvestModal(false);
         setInvestmentAmount('');
-        // Refresh pitch data
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         alert(data.message || 'Failed to submit investment');
       }
@@ -116,8 +119,10 @@ const PitchDetail = () => {
 
       const data = await response.json();
       if (data.success) {
-        alert('Pitch deleted successfully!');
-        navigate('/pitches');
+        showToast('Pitch deleted successfully', 'pitch-deleted', 3000);
+        setTimeout(() => {
+          navigate('/pitches');
+        }, 500);
       } else {
         alert(data.message || 'Failed to delete pitch');
       }
