@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { API_ENDPOINTS } from "../config/api"; // ✅ Import API config
+import { API_ENDPOINTS } from "../config/api";
+import { useToast } from "../context/ToastContext";
 import "../App.css";
 
 const CreateAcc = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     fullName: "",
     username: "", // ✅ Added username field
@@ -154,9 +156,14 @@ const CreateAcc = () => {
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
 
-          // Registration successful - redirect to dashboard
-          alert("Account created successfully! Welcome to PitchZone.");
-          navigate("/dashboard");
+          // Show success toast
+          const userName = data.user.fullName || data.user.username || 'there';
+          showToast(`Welcome to PitchZone, ${userName}!`, 'login', 3000);
+
+          // Registration successful - redirect to dashboard after brief delay
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 500);
         } else {
           // Handle registration errors
           if (data.errors && Array.isArray(data.errors)) {

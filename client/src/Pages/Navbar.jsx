@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "../context/ToastContext";
 import "../App.css";
 import Logo from "../assets/Logo.png";
 
@@ -7,6 +8,7 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   
   // Get user role from localStorage
   const [userRole] = useState(() => {
@@ -24,13 +26,24 @@ const Navbar = () => {
 
   const handleLogout = () => {
     setIsDropdownOpen(false);
+    
+    // Get user name before clearing storage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userName = user.fullName || user.username || 'there';
+    
     // Clear all stored user data
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
-    // Redirect to landing page
-    navigate('/');
+    
+    // Show logout toast
+    showToast(`See you soon, ${userName}!`, 'logout', 3000);
+    
+    // Redirect to landing page after brief delay
+    setTimeout(() => {
+      navigate('/');
+    }, 500);
   };
 
   return (

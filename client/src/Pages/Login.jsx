@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS } from '../config/api'; // ✅ Import API config
+import { API_ENDPOINTS } from '../config/api';
+import { useToast } from '../context/ToastContext';
 import '../App.css';
 
 const Login = () => {
@@ -9,6 +10,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,14 +37,20 @@ const Login = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        console.log('Login successful, user role:', data.user.role); // ✅ Debug log
+        console.log('Login successful, user role:', data.user.role);
         
-        // ✅ Redirect based on user role
-        if (data.user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/home'); // or '/dashboard' depending on your routing
-        }
+        // Show welcome toast
+        const userName = data.user.fullName || data.user.username || 'there';
+        showToast(`Welcome back, ${userName}!`, 'login', 3000);
+        
+        // Redirect based on user role after a brief delay
+        setTimeout(() => {
+          if (data.user.role === 'admin') {
+            navigate('/admin');
+          } else {
+            navigate('/home');
+          }
+        }, 500);
       } else {
         if (data.errors && Array.isArray(data.errors)) {
           const loginErrors = {};
