@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { User, AtSign, Mail, Briefcase, Key, Lock, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from "../config/api";
 import { useToast } from "../context/ToastContext";
 import "../App.css";
 
-const CreateAcc = () => {
+const CreateAccount = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [formData, setFormData] = useState({
     fullName: "",
-    username: "", // ✅ Added username field
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -19,7 +20,7 @@ const CreateAcc = () => {
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false); // ✅ Added loading state
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -69,12 +70,10 @@ const CreateAcc = () => {
     e.preventDefault();
     const newErrors = {};
 
-    // Validate full name
     if (!formData.fullName.trim()) {
       newErrors.fullName = "Full name is required";
     }
 
-    // ✅ Validate username
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
     } else if (!validateUsername(formData.username)) {
@@ -82,28 +81,24 @@ const CreateAcc = () => {
         "Username must be 3-30 characters and contain only letters, numbers, and underscores";
     }
 
-    // Validate email
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!validateEmail(formData.email)) {
       newErrors.email = "Please enter a valid email address";
     }
 
-    // ✅ Validate password length (backend requires min 6 characters)
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters long";
     }
 
-    // Validate password confirmation
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    // Validate investor-specific fields
     if (formData.userType === "investor") {
       if (!formData.linkedinUrl.trim()) {
         newErrors.linkedinUrl = "LinkedIn URL is required for investors";
@@ -120,12 +115,11 @@ const CreateAcc = () => {
 
     // If no errors, proceed with account creation
     if (Object.keys(newErrors).length === 0) {
-      setLoading(true); // ✅ Set loading state
+      setLoading(true);
 
       try {
-        // ✅ Build registration data matching backend schema
         const registrationData = {
-          username: formData.username, // ✅ Backend requires username
+          username: formData.username,
           email: formData.email,
           password: formData.password,
           role: formData.userType,
@@ -137,9 +131,6 @@ const CreateAcc = () => {
           registrationData.linkedinUrl = formData.linkedinUrl;
         }
 
-        console.log("Sending registration data:", registrationData); // ✅ Debug log
-
-        // ✅ Use API_ENDPOINTS instead of hardcoded URL
         const response = await fetch(API_ENDPOINTS.register, {
           method: "POST",
           headers: {
@@ -149,10 +140,8 @@ const CreateAcc = () => {
         });
 
         const data = await response.json();
-        console.log("Server response:", data); // ✅ Debug log
 
         if (data.success) {
-          // ✅ Store token and user data
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -184,7 +173,7 @@ const CreateAcc = () => {
           general: "Network error. Please check if the server is running.",
         });
       } finally {
-        setLoading(false); // ✅ Reset loading state
+        setLoading(false);
       }
     }
   };
@@ -229,13 +218,12 @@ const CreateAcc = () => {
                 onChange={handleInputChange}
                 className={`signup-input ${errors.fullName ? "error" : ""}`}
               />
-              <span className="input-icon">👤</span>
+              <span className="input-icon"><User size={20} /></span>
               {errors.fullName && (
                 <span className="error-message">{errors.fullName}</span>
               )}
             </div>
 
-            {/* ✅ Added username field */}
             <div className="input-group">
               <input
                 type="text"
@@ -245,7 +233,7 @@ const CreateAcc = () => {
                 onChange={handleInputChange}
                 className={`signup-input ${errors.username ? "error" : ""}`}
               />
-              <span className="input-icon">@</span>
+              <span className="input-icon"><AtSign size={20} /></span>
               {errors.username && (
                 <span className="error-message">{errors.username}</span>
               )}
@@ -260,7 +248,7 @@ const CreateAcc = () => {
                 onChange={handleInputChange}
                 className={`signup-input ${errors.email ? "error" : ""}`}
               />
-              <span className="input-icon">📧</span>
+              <span className="input-icon"><Mail size={20} /></span>
               {errors.email && (
                 <span className="error-message">{errors.email}</span>
               )}
@@ -310,7 +298,7 @@ const CreateAcc = () => {
                         errors.linkedinUrl ? "error" : ""
                       }`}
                     />
-                    <span className="input-icon">💼</span>
+                    <span className="input-icon"><Briefcase size={20} /></span>
                     {errors.linkedinUrl && (
                       <span className="error-message">
                         {errors.linkedinUrl}
@@ -329,7 +317,7 @@ const CreateAcc = () => {
                         errors.accessCode ? "error" : ""
                       }`}
                     />
-                    <span className="input-icon">🔑</span>
+                    <span className="input-icon"><Key size={20} /></span>
                     {errors.accessCode && (
                       <span className="error-message">{errors.accessCode}</span>
                     )}
@@ -347,7 +335,7 @@ const CreateAcc = () => {
                 onChange={handleInputChange}
                 className={`signup-input ${errors.password ? "error" : ""}`}
               />
-              <span className="input-icon">🔒</span>
+              <span className="input-icon"><Lock size={20} /></span>
               {errors.password && (
                 <span className="error-message">{errors.password}</span>
               )}
@@ -364,13 +352,12 @@ const CreateAcc = () => {
                   errors.confirmPassword ? "error" : ""
                 }`}
               />
-              <span className="input-icon">🔐</span>
+              <span className="input-icon"><Lock size={20} /></span>
               {errors.confirmPassword && (
                 <span className="error-message">{errors.confirmPassword}</span>
               )}
             </div>
 
-            {/* ✅ Added loading state to button */}
             <button
               type="submit"
               className={`signup-button auth-button ${
@@ -378,7 +365,12 @@ const CreateAcc = () => {
               }`}
               disabled={loading}
             >
-              {loading ? "Creating Account..." : "Create Account"}
+              {loading ? (
+                <div className="btn-loader">
+                  <Loader2 className="animate-spin" size={20} />
+                  <span>Creating Account...</span>
+                </div>
+              ) : "Create Account"}
             </button>
           </form>
 
@@ -394,4 +386,4 @@ const CreateAcc = () => {
   );
 };
 
-export default CreateAcc;
+export default CreateAccount;

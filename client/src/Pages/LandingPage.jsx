@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import '../App.css';
 
-const Startingpoint = () => {
+const LandingPage = () => {
   return (
     <div className="startingpoint-container">
       <div className="startingpoint-content">
@@ -34,5 +34,5 @@ const Startingpoint = () => {
   );
 };
 
-export default Startingpoint;
+export default LandingPage;
   

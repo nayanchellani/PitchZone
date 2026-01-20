@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
 import { cleanFormData, validatePitchForm, getCharacterCountInfo } from '../utils/formValidation';
 import ImagePreview from '../components/ImagePreview';
+import { Rocket, User, DollarSign, ExternalLink } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import '../App.css';
 
@@ -397,7 +398,7 @@ const Pitches = () => {
                     className="pitch-placeholder" 
                     style={{ display: (pitch.imageUrl && pitch.imageUrl.trim() !== '') ? 'none' : 'flex' }}
                   >
-                    <span className="pitch-icon">🚀</span>
+                    <span className="pitch-icon"><Rocket size={40} /></span>
                   </div>
                 </div>
                 
@@ -410,7 +411,7 @@ const Pitches = () => {
                   <p className="pitch-description">{pitch.description}</p>
                   
                   <div className="pitch-founder">
-                    <span>👤 {pitch.entrepreneur?.fullName || pitch.entrepreneur?.username}</span>
+                    <span><User size={16} style={{display: 'inline', verticalAlign: 'middle', marginRight: '4px'}} /> {pitch.entrepreneur?.fullName || pitch.entrepreneur?.username}</span>
                   </div>
 
                   <div className="funding-section">
@@ -437,7 +438,7 @@ const Pitches = () => {
                   <div className="pitch-actions">
                     <Link to={`/pitches/${pitch._id}`} className="action-button">View Details</Link>
                     {userRole === 'investor' && (
-                      <button className="primary-cta-button">💰 Invest</button>
+                      <button className="primary-cta-button"><DollarSign size={16} style={{marginRight: '4px'}} /> Invest</button>
                     )}
                   </div>
                 </div>
