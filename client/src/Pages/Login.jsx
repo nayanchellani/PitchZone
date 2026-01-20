@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import { API_ENDPOINTS } from '../config/api';
 import { useToast } from '../context/ToastContext';
 import '../App.css';
@@ -20,7 +21,7 @@ const Login = () => {
     try {
 
       
-      // ✅ FIXED: Use API_ENDPOINTS.login instead of hardcoded URL
+      
       const response = await fetch(API_ENDPOINTS.login, {
         method: 'POST',
         headers: {
@@ -99,7 +100,7 @@ const Login = () => {
                   className={`login-input ${errors.email ? 'error' : ''}`}
                   required
                 />
-                <span className="input-icon">📧</span>
+                <span className="input-icon"><Mail size={20} /></span>
                 {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
 
@@ -112,12 +113,17 @@ const Login = () => {
                   className={`login-input ${errors.password ? 'error' : ''}`}
                   required
                 />
-                <span className="input-icon">🔒</span>
+                <span className="input-icon"><Lock size={20} /></span>
                 {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
 
               <button type="submit" className={`login-button auth-button ${loading ? 'disabled-button' : ''}`} disabled={loading}>
-                {loading ? 'Signing In...' : 'Login'}
+                {loading ? (
+                  <div className="btn-loader">
+                    <Loader2 className="animate-spin" size={20} />
+                    <span>Signing In...</span>
+                  </div>
+                ) : 'Login'}
               </button>
             </form>
 

@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
+import { 
+  User, Rocket, ClipboardList, Briefcase, TrendingUp, 
+  Search, Lightbulb, BarChart2, DollarSign, Eye, 
+  Building, Trophy, Megaphone 
+} from 'lucide-react';
 import "../App.css";
 
 const Home = () => {
@@ -106,14 +111,14 @@ const Home = () => {
           type: 'profile',
           message: 'Complete your profile to attract more investors',
           time: 'Now',
-          icon: '👤'
+          icon: <User size={20} />
         },
         {
           id: 2,
           type: 'pitch',
           message: 'Create your first pitch to start fundraising',
           time: 'Now',
-          icon: '🚀'
+          icon: <Rocket size={20} />
         }
       );
     } else {
@@ -123,14 +128,14 @@ const Home = () => {
           type: 'explore',
           message: `${pitches.length} active pitches available for investment`,
           time: 'Now',
-          icon: '📋'
+          icon: <ClipboardList size={20} />
         },
         {
           id: 2,
           type: 'profile',
           message: 'Complete your investor profile',
           time: 'Now',
-          icon: '💼'
+          icon: <Briefcase size={20} />
         }
       );
     }
@@ -173,8 +178,8 @@ const Home = () => {
           <div className="welcome-text">
             <h1 className="welcome-greeting">
               {user.role === 'entrepreneur' 
-                ? `Welcome back, ${user.fullName || user.username}! 🚀` 
-                : `Hello, ${user.fullName || user.username}! 💼`
+                ? <span className="flex items-center gap-2">Welcome back, {user.fullName || user.username}! <Rocket className="inline-icon" /></span> 
+                : <span className="flex items-center gap-2">Hello, {user.fullName || user.username}! <Briefcase className="inline-icon" /></span>
               }
             </h1>
             <p className="welcome-subtitle">
@@ -222,14 +227,14 @@ const Home = () => {
                 {user.role === 'entrepreneur' ? (
                   <>
                     <Link to="/pitches" className="action-card primary">
-                      <div className="action-icon">🚀</div>
+                      <div className="action-icon"><Rocket size={32} /></div>
                       <div className="action-text">
                         <h3>Create New Pitch</h3>
                         <p>Share your innovative idea with investors</p>
                       </div>
                     </Link>
                     <Link to="/dashboard" className="action-card secondary">
-                      <div className="action-icon">📈</div>
+                      <div className="action-icon"><TrendingUp size={32} /></div>
                       <div className="action-text">
                         <h3>View Analytics</h3>
                         <p>Track your pitch performance</p>
@@ -239,14 +244,14 @@ const Home = () => {
                 ) : (
                   <>
                     <Link to="/pitches" className="action-card primary">
-                      <div className="action-icon">🔍</div>
+                      <div className="action-icon"><Search size={32} /></div>
                       <div className="action-text">
                         <h3>Review Pitches</h3>
                         <p>Discover promising startups</p>
                       </div>
                     </Link>
                     <Link to="/dashboard" className="action-card secondary">
-                      <div className="action-icon">💼</div>
+                      <div className="action-icon"><Briefcase size={32} /></div>
                       <div className="action-text">
                         <h3>Portfolio Overview</h3>
                         <p>Manage your investments</p>
@@ -280,11 +285,11 @@ const Home = () => {
               <div className="pitch-recommendations">
                 {pitches.slice(0, 2).map(pitch => (
                   <div key={pitch._id} className="mini-pitch-card">
-                    <div className="mini-pitch-image">🚀</div>
+                    <div className="mini-pitch-image"><Rocket size={24} /></div>
                     <div className="mini-pitch-content">
                       <h4>{pitch.title}</h4>
                       <p>₹{(pitch.raisedAmount / 1000).toFixed(0)}K raised • {pitch.category}</p>
-                      <span className="trending-badge">💡 {pitch.stage}</span>
+                      <span className="trending-badge"><Lightbulb size={14} /> {pitch.stage}</span>
                     </div>
                   </div>
                 ))}
@@ -307,21 +312,21 @@ const Home = () => {
                 {user.role === 'entrepreneur' ? (
                   <>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">📊</span>
+                      <span className="stat-icon-small"><BarChart2 size={16} /></span>
                       <div className="stat-info">
                         <span className="stat-number">{stats?.pitchesSubmitted || 0}</span>
                         <span className="stat-label">Pitches</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">💰</span>
+                      <span className="stat-icon-small"><DollarSign size={16} /></span>
                       <div className="stat-info">
                         <span className="stat-number">₹{((stats?.totalRaised || 0) / 1000).toFixed(0)}K</span>
                         <span className="stat-label">Raised</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">👀</span>
+                      <span className="stat-icon-small"><Eye size={16} /></span>
                       <div className="stat-info">
                         <span className="stat-number">{stats?.totalViews || 0}</span>
                         <span className="stat-label">Views</span>
@@ -331,21 +336,21 @@ const Home = () => {
                 ) : (
                   <>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">📋</span>
+                      <span className="stat-icon-small"><ClipboardList size={16} /></span>
                       <div className="stat-info">
                         <span className="stat-number">{pitches.length}</span>
                         <span className="stat-label">Available</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">💼</span>
+                      <span className="stat-icon-small"><Briefcase size={16} /></span>
                       <div className="stat-info">
                         <span className="stat-number">{profileCompletion}%</span>
                         <span className="stat-label">Profile</span>
                       </div>
                     </div>
                     <div className="stat-item-sidebar">
-                      <span className="stat-icon-small">🏢</span>
+                      <span className="stat-icon-small"><Building size={16} /></span>
                       <div className="stat-info">
                         <span className="stat-number">{new Date(user.createdAt).getFullYear()}</span>
                         <span className="stat-label">Since</span>
@@ -359,40 +364,19 @@ const Home = () => {
 
             {/* Leaderboard Teaser */}
             <div className="leaderboard-teaser">
-              <h3>🏆 Leaderboard</h3>
+              <h3><Trophy size={20} className="inline-icon" /> Leaderboard</h3>
               <div className="top-performers">
-                <div className="performer-item">
-                  <span className="rank">1.</span>
-                  <span className="name">TechVision AI</span>
-                  <span className="score">98</span>
-                </div>
-                <div className="performer-item">
-                  <span className="rank">2.</span>
-                  <span className="name">GreenEnergy</span>
-                  <span className="score">95</span>
-                </div>
-                <div className="performer-item current-user">
-                  <span className="rank">7.</span>
-                  <span className="name">You</span>
-                  <span className="score">82</span>
-                </div>
+                <p className="text-gray-500 text-center py-4">Rankings coming soon!</p>
               </div>
               <Link to="/leaderboard" className="action-button">View Full Leaderboard</Link>
             </div>
 
             {/* Announcements */}
             <div className="announcements">
-              <h3>📢 Announcements</h3>
+              <h3><Megaphone size={20} className="inline-icon" /> Announcements</h3>
               <div className="announcement-list">
                 <div className="announcement-item">
-                  <h4>New Feature: AI Pitch Analysis</h4>
-                  <p>Get AI-powered feedback on your pitches</p>
-                  <span className="announcement-date">2 days ago</span>
-                </div>
-                <div className="announcement-item">
-                  <h4>Investor Meetup - March 15</h4>
-                  <p>Join our monthly networking event</p>
-                  <span className="announcement-date">1 week ago</span>
+                  <p className="text-gray-500">No new announcements.</p>
                 </div>
               </div>
             </div>

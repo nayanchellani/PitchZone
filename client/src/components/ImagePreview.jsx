@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { isValidImageUrl } from '../utils/formValidation';
+import { CheckCircle, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
 
 const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
   const [imageStatus, setImageStatus] = useState('loading'); // loading, success, error
@@ -53,7 +54,7 @@ const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
     <div className={`image-preview-container ${className}`}>
       {imageStatus === 'loading' && (
         <div className="image-preview-loading">
-          <div className="loading-spinner"></div>
+          <Loader2 className="animate-spin" size={24} color="#66fcf1" />
           <span>Loading image...</span>
         </div>
       )}
@@ -73,11 +74,11 @@ const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
             }}
           />
           <div className="image-preview-status success">
-            ✅ Image loaded successfully
+            <CheckCircle size={16} /> Image loaded successfully
           </div>
           {showWarning && (
             <div className="image-preview-status warning">
-              ⚠️ Make sure this URL points to an image file
+              <AlertTriangle size={16} /> Make sure this URL points to an image file
             </div>
           )}
         </div>
@@ -86,7 +87,7 @@ const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
       {imageStatus === 'error' && (
         <div className="image-preview-error">
           <div className="image-preview-placeholder error">
-            <span>❌</span>
+            <XCircle size={32} />
           </div>
           <div className="image-preview-status error">
             {imageError}

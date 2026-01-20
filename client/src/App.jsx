@@ -1,7 +1,7 @@
 import "./App.css";
-import Startingpoint from "./Pages/Startingpoint";
+import LandingPage from "./Pages/LandingPage";
 import Login from "./Pages/Login";
-import CreateAcc from "./Pages/createAcc";
+import CreateAccount from "./Pages/CreateAccount";
 import Home from "./Pages/Home";
 import Dashboard from "./Pages/Dashboard";
 import Pitches from "./Pages/Pitches";
@@ -17,7 +17,7 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Startingpoint/>,
+      element: <LandingPage/>,
     },
     {
       path: "/login",
@@ -25,7 +25,7 @@ function App() {
     },
     {
       path: "/createaccount",
-      element: <CreateAcc />,
+      element: <CreateAccount />,
     },
     {
       path: "/home",
