@@ -1,12 +1,8 @@
 import { useEffect } from 'react';
 import { 
-  LogIn, 
-  LogOut, 
-  Rocket, 
-  Trash2, 
-  DollarSign, 
   CheckCircle, 
-  AlertCircle, 
+  XCircle, 
+  AlertTriangle, 
   Info 
 } from 'lucide-react';
 import '../styles/Toast.css';
@@ -21,23 +17,20 @@ const Toast = ({ message, type, onClose, duration = 3000 }) => {
   }, [duration, onClose]);
 
   const getToastIcon = () => {
-    const iconProps = { size: 24, strokeWidth: 2.5 };
+    const iconProps = { size: 18, strokeWidth: 2.5 };
     
     switch (type) {
       case 'login':
-        return <LogIn {...iconProps} />;
       case 'logout':
-        return <LogOut {...iconProps} />;
       case 'pitch-created':
-        return <Rocket {...iconProps} />;
-      case 'pitch-deleted':
-        return <Trash2 {...iconProps} />;
       case 'investment':
-        return <DollarSign {...iconProps} />;
       case 'success':
         return <CheckCircle {...iconProps} />;
+      case 'pitch-deleted':
       case 'error':
-        return <AlertCircle {...iconProps} />;
+        return <XCircle {...iconProps} />;
+      case 'warning':
+        return <AlertTriangle {...iconProps} />;
       default:
         return <Info {...iconProps} />;
     }

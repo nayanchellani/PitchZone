@@ -1,22 +1,22 @@
-/* Toast Notification Styles */
+/* Compact Toast Notification Styles */
 .toast-notification {
   position: fixed;
-  bottom: 40px;
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(102, 252, 241, 0.2);
-  backdrop-filter: blur(10px);
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
   z-index: 9999;
-  animation: toastSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-             toastFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) 2.7s forwards;
-  min-width: 320px;
-  max-width: 500px;
-  border: 2px solid;
+  animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+             toastFadeOut 0.2s ease-in 2.8s forwards;
+  min-width: unset;
+  max-width: 400px;
+  border: 1px solid;
 }
 
 .toast-icon {
@@ -24,40 +24,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: transparent;
 }
 
 .toast-message {
-  font-size: 1rem;
+  font-size: 0.925rem;
   font-weight: 500;
   line-height: 1.5;
   letter-spacing: 0.3px;
   flex: 1;
 }
 
-/* Login Toast - Welcoming cyan gradient */
+/* Login Toast - Bright Green (User Request) */
 .toast-login {
-  background: linear-gradient(135deg, rgba(69, 162, 158, 0.95) 0%, rgba(102, 252, 241, 0.95) 100%);
-  border-color: #66fcf1;
-  color: #0b0c10;
+  background: #22c55e;
+  border-color: #16a34a;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 .toast-login .toast-icon {
-  background: rgba(11, 12, 16, 0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Logout Toast - Subtle gray gradient */
+/* Logout Toast - Red for ending session (user request) */
 .toast-logout {
-  background: linear-gradient(135deg, rgba(31, 40, 51, 0.98) 0%, rgba(69, 162, 158, 0.95) 100%);
-  border-color: #45a29e;
-  color: #c5c6c7;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
+  border-color: #ef4444;
+  color: #ffffff;
 }
 
 .toast-logout .toast-icon {
-  background: rgba(102, 252, 241, 0.15);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Pitch Created Toast - Vibrant success gradient */

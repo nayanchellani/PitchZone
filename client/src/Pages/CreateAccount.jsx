@@ -4,6 +4,7 @@ import { User, AtSign, Mail, Briefcase, Key, Lock, Loader2 } from 'lucide-react'
 import { API_ENDPOINTS } from "../config/api";
 import { useToast } from "../context/ToastContext";
 import "../App.css";
+import Logo from "../assets/Logo.png";
 
 const CreateAccount = () => {
   const navigate = useNavigate();
@@ -182,11 +183,14 @@ const CreateAccount = () => {
     <div className="login-container">
       <div className="signup-card">
         <div className="signup-left">
+          <div style={{ marginBottom: '2rem' }}>
+            <img src={Logo} alt="PitchZone" style={{ height: '50px', width: 'auto' }} />
+          </div>
           <h1 className="signup-main-title">
-            Get Started — Your Ideas Deserve the Spotlight
+            Get Started<br />Your Ideas Deserve the Spotlight
           </h1>
           <p className="signup-subtitle">
-            Your journey from idea to investment begins here
+            Join a thriving community of innovators and investors. Your journey from idea to investment begins here.
           </p>
         </div>
 
