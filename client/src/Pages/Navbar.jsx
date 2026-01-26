@@ -38,7 +38,7 @@ const Navbar = () => {
     sessionStorage.removeItem('token');
     
     // Show logout toast
-    showToast(`See you soon, ${userName}!`, 'logout', 3000);
+    showToast('Logged out successfully', 'logout', 3000);
     
     // Redirect to landing page after brief delay
     setTimeout(() => {

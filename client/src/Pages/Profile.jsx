@@ -2,9 +2,17 @@ import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import { API_ENDPOINTS } from '../config/api';
 import { cleanFormData, validateProfileForm, getCharacterCountInfo } from '../utils/formValidation';
+import { useToast } from '../context/ToastContext';
+import { 
+  User, Mail, MapPin, Calendar, Briefcase, 
+  Rocket, TrendingUp, DollarSign, Award,
+  Linkedin, Globe, Phone, Edit2, X, Plus,
+  Layout, Activity, AlertTriangle 
+} from 'lucide-react';
 import '../App.css';
 
 const Profile = () => {
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [pitches, setPitches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +21,8 @@ const Profile = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingPitchId, setDeletingPitchId] = useState(null);
+  const [isDirty, setIsDirty] = useState(false);
+  const [initialFormState, setInitialFormState] = useState({});
   const [editForm, setEditForm] = useState({
     fullName: '',
     bio: '',
@@ -43,7 +53,7 @@ const Profile = () => {
         const profileData = await profileResponse.json();
         if (profileData.success) {
           setUser(profileData.user);
-          setEditForm({
+          const formData = {
             fullName: profileData.user.fullName || '',
             bio: profileData.user.bio || '',
             phoneNumber: profileData.user.phoneNumber || '',
@@ -53,7 +63,10 @@ const Profile = () => {
             companyName: profileData.user.companyName || '',
             industry: profileData.user.industry || '',
             linkedinUrl: profileData.user.linkedinUrl || ''
-          });
+          };
+          
+          setEditForm(formData);
+          setInitialFormState(formData);
 
           // Fetch user's pitches if entrepreneur
           if (profileData.user.role === 'entrepreneur') {
@@ -119,8 +132,9 @@ const Profile = () => {
         const updatedUser = { ...currentUser, ...data.user };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         
+        
         setShowEditModal(false);
-        alert('Profile updated successfully!');
+        showToast('Profile updated successfully!', 'success');
       } else {
         // Handle backend validation errors
         if (data.errors && Array.isArray(data.errors)) {
@@ -130,12 +144,12 @@ const Profile = () => {
           });
           setFormErrors(backendErrors);
         } else {
-          alert(data.message || 'Failed to update profile');
+          showToast(data.message || 'Failed to update profile', 'error');
         }
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Network error. Please try again.');
+      showToast('Network error. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -143,10 +157,15 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setEditForm(prev => {
+      const newState = { ...prev, [name]: value };
+      
+      // Check if dirty
+      const isFormDirty = JSON.stringify(newState) !== JSON.stringify(initialFormState);
+      setIsDirty(isFormDirty);
+      
+      return newState;
+    });
     
     // Clear error when user starts typing
     if (formErrors[name]) {
@@ -154,6 +173,19 @@ const Profile = () => {
         ...prev,
         [name]: ''
       }));
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (isDirty) {
+      if (window.confirm('You have unsaved changes. Are you sure you want to discard them?')) {
+        setShowEditModal(false);
+        setEditForm(initialFormState);
+        setIsDirty(false);
+        showToast('Changes discarded', 'info');
+      }
+    } else {
+      setShowEditModal(false);
     }
   };
 
@@ -178,13 +210,13 @@ const Profile = () => {
       if (data.success) {
         // Remove the deleted pitch from the local state
         setPitches(prevPitches => prevPitches.filter(pitch => pitch._id !== pitchId));
-        alert('Pitch deleted successfully!');
+        showToast('Pitch deleted successfully!', 'pitch-deleted');
       } else {
-        alert(data.message || 'Failed to delete pitch');
+        showToast(data.message || 'Failed to delete pitch', 'error');
       }
     } catch (error) {
       console.error('Error deleting pitch:', error);
-      alert('Network error. Please try again.');
+      showToast('Network error. Please try again.', 'error');
     } finally {
       setDeletingPitchId(null);
     }
@@ -251,13 +283,16 @@ const Profile = () => {
         {completionPercentage < 100 && (
           <div className="profile-completion-card">
             <div className="completion-header">
-              <h3>Complete Your Profile</h3>
+              <div className="completion-title">
+                <Activity size={24} className="completion-icon" />
+                <h3>Profile Strength</h3>
+              </div>
               <span className="completion-percentage">{completionPercentage}%</span>
             </div>
             <p className="completion-message">
               Complete your profile to increase visibility and credibility with {user.role === 'entrepreneur' ? 'investors' : 'entrepreneurs'}.
             </p>
-            <div className="progress-bar">
+            <div className="progress-bar-container">
               <div 
                 className="progress-fill" 
                 style={{width: `${completionPercentage}%`}}
@@ -266,280 +301,319 @@ const Profile = () => {
           </div>
         )}
 
-        <div className="profile-header">
+        <div className="profile-header-glass">
           <div className="profile-avatar-large">
-            <span>{(user.fullName || user.username).charAt(0).toUpperCase()}</span>
+             {(user.fullName || user.username).charAt(0).toUpperCase()}
           </div>
           <div className="profile-info">
             <h1 className="profile-name">{user.fullName || user.username}</h1>
-            <p className="profile-email">{user.email}</p>
-            <div className="profile-meta">
-              <span className="profile-role">
-                {user.role === 'entrepreneur' ? '🚀 Entrepreneur' : user.role === 'investor' ? '💼 Investor' : '👤 User'}
-              </span>
-              {user.location && <span className="profile-location">📍 {user.location}</span>}
-              <span className="profile-joined">📅 Joined {new Date(user.createdAt).toLocaleDateString()}</span>
+            <div className="profile-contact-row">
+              <span className="contact-item"><Mail size={16} /> {user.email}</span>
+              {user.phoneNumber && <span className="contact-item"><Phone size={16} /> {user.phoneNumber}</span>}
+              {user.location && <span className="contact-item"><MapPin size={16} /> {user.location}</span>}
             </div>
+            
+            <div className="profile-badges">
+              <span className={`role-badge ${user.role}`}>
+                {user.role === 'entrepreneur' ? <Rocket size={14} /> : <Briefcase size={14} />}
+                {user.role === 'entrepreneur' ? 'Entrepreneur' : 'Investor'}
+              </span>
+              <span className="join-date">
+                <Calendar size={14} /> Joined {new Date(user.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+
             {user.bio && (
-              <p style={{ color: 'var(--light-gray)', opacity: 0.8, marginTop: 'var(--spacing-md)' }}>
+              <p className="profile-bio">
                 {user.bio}
               </p>
             )}
+            
+            <div className="profile-links">
+               {user.website && (
+                 <a href={user.website} target="_blank" rel="noopener noreferrer" className="link-item">
+                   <Globe size={16} /> Website
+                 </a>
+               )}
+               {user.linkedinUrl && (
+                 <a href={user.linkedinUrl} target="_blank" rel="noopener noreferrer" className="link-item">
+                   <Linkedin size={16} /> LinkedIn
+                 </a>
+               )}
+            </div>
           </div>
-          <button className="edit-profile-btn" onClick={() => setShowEditModal(true)}>
-            Edit Profile
+          <button className="edit-profile-btn-modern" onClick={() => setShowEditModal(true)}>
+            <Edit2 size={18} /> Edit Profile
           </button>
         </div>
 
         {user.role === 'entrepreneur' ? (
-          <div className="entrepreneur-section">
-            <div className="stats-overview">
-              <div className="stat-card">
-                <h3>Total Raised</h3>
-                <div className="stat-value">₹{((stats?.totalRaised || 0) / 1000000).toFixed(1)}M</div>
-                <p>Across all pitches</p>
+          <div className="entrepreneur-dashboard">
+            <div className="stats-grid-modern">
+              <div className="stat-card-modern">
+                <div className="stat-icon-bg"><DollarSign size={24} /></div>
+                <div className="stat-content">
+                  <h3>Total Raised</h3>
+                  <div className="stat-value">₹{((stats?.totalRaised || 0) / 1000000).toFixed(1)}M</div>
+                  <p>Across all pitches</p>
+                </div>
               </div>
-              <div className="stat-card">
-                <h3>Active Pitches</h3>
-                <div className="stat-value">{stats?.activePitches || 0}</div>
-                <p>Currently fundraising</p>
+              <div className="stat-card-modern">
+                <div className="stat-icon-bg"><Rocket size={24} /></div>
+                <div className="stat-content">
+                  <h3>Active Pitches</h3>
+                  <div className="stat-value">{stats?.activePitches || 0}</div>
+                  <p>Currently fundraising</p>
+                </div>
               </div>
-              <div className="stat-card">
-                <h3>Success Rate</h3>
-                <div className="stat-value">{stats?.successRate || 0}%</div>
-                <p>Funding success</p>
+              <div className="stat-card-modern">
+                <div className="stat-icon-bg"><TrendingUp size={24} /></div>
+                <div className="stat-content">
+                  <h3>Success Rate</h3>
+                  <div className="stat-value">{stats?.successRate || 0}%</div>
+                  <p>Funding success</p>
+                </div>
               </div>
             </div>
 
-            <div className="pitches-section">
-              <h2>My Pitches</h2>
-              <div className="pitches-list">
-                {pitches.length > 0 ? pitches.map(pitch => (
-                  <div key={pitch._id} className="pitch-item">
-                    <div className="pitch-item-header">
-                      <h3>{pitch.title}</h3>
-                      <span className={`status-badge ${pitch.status.toLowerCase()}`}>
-                        {pitch.status}
-                      </span>
-                    </div>
-                    <div className="pitch-item-stats">
-                      <div className="funding-progress">
-                        <div className="progress-info">
-                          <span>Raised: ₹{(pitch.raisedAmount / 1000).toFixed(0)}K</span>
-                          <span>Target: ₹{(pitch.targetAmount / 1000).toFixed(0)}K</span>
-                        </div>
-                        <div className="progress-bar">
-                          <div 
-                            className="progress-fill" 
-                            style={{width: `${(pitch.raisedAmount / pitch.targetAmount) * 100}%`}}
-                          ></div>
-                        </div>
+            <div className="section-header-modern">
+              <h2><Layout size={24} /> My Pitches</h2>
+              <a href="/pitches" className="create-pitch-link"><Plus size={18} /> New Pitch</a>
+            </div>
+            
+            <div className="pitches-grid-modern">
+              {pitches.length > 0 ? pitches.map(pitch => (
+                <div key={pitch._id} className="pitch-card-modern">
+                  <div className="pitch-card-header">
+                    <h3>{pitch.title}</h3>
+                    <span className={`status-pill ${pitch.status.toLowerCase()}`}>
+                      {pitch.status}
+                    </span>
+                  </div>
+                  <div className="pitch-card-body">
+                    <div className="funding-progress-compact">
+                      <div className="progress-labels">
+                        <span>Raised: ₹{(pitch.raisedAmount / 1000).toFixed(0)}K</span>
+                        <span>{Math.round((pitch.raisedAmount / pitch.targetAmount) * 100)}%</span>
                       </div>
-                      <div className="pitch-meta">
-                        <span>{pitch.investors?.length || 0} investors</span>
-                        <span className="category-tag">{pitch.category}</span>
+                      <div className="progress-track">
+                        <div 
+                          className="progress-bar-fill" 
+                          style={{width: `${(pitch.raisedAmount / pitch.targetAmount) * 100}%`}}
+                        ></div>
                       </div>
                     </div>
-                    <div className="pitch-actions">
-                      <a href={`/pitches/${pitch._id}`} className="btn-secondary">View Details</a>
-                      <button 
-                        className="btn-danger"
-                        onClick={() => handleDeletePitch(pitch._id)}
-                        disabled={deletingPitchId === pitch._id}
-                      >
-                        {deletingPitchId === pitch._id ? 'Deleting...' : 'Delete Pitch'}
-                      </button>
+                    <div className="pitch-mini-stats">
+                      <span><User size={14} /> {pitch.investors?.length || 0} investors</span>
+                      <span className="category-tag-modern">{pitch.category}</span>
                     </div>
                   </div>
-                )) : (
-                  <p style={{ color: 'var(--light-gray)', opacity: 0.7, textAlign: 'center', padding: '2rem' }}>
-                    No pitches yet. <a href="/pitches" style={{ color: 'var(--vibrant-cyan)' }}>Create your first pitch!</a>
-                  </p>
-                )}
-              </div>
+                  <div className="pitch-card-actions">
+                    <a href={`/pitches/${pitch._id}`} className="btn-view-details">Details</a>
+                    <button 
+                      className="btn-delete-icon"
+                      onClick={() => handleDeletePitch(pitch._id)}
+                      disabled={deletingPitchId === pitch._id}
+                      title="Delete Pitch"
+                    >
+                      {deletingPitchId === pitch._id ? <div className="spinner-small"></div> : <X size={18} />}
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <div className="empty-state-modern">
+                   <div className="empty-icon"><Rocket size={48} /></div>
+                   <h3>No pitches yet</h3>
+                   <p>Start your journey by creating your first pitch.</p>
+                   <a href="/pitches" className="btn-primary-modern">Create Pitch</a>
+                </div>
+              )}
             </div>
           </div>
         ) : (
-          <div className="shark-section">
-            <div className="stats-overview">
-              <div className="stat-card">
-                <h3>Profile Completion</h3>
-                <div className="stat-value">{completionPercentage}%</div>
-                <p>Profile completeness</p>
+          <div className="investor-dashboard">
+            <div className="stats-grid-modern">
+              <div className="stat-card-modern">
+                <div className="stat-icon-bg"><Award size={24} /></div>
+                <div className="stat-content">
+                  <h3>Profile Completion</h3>
+                  <div className="stat-value">{completionPercentage}%</div>
+                  <p>Profile completeness</p>
+                </div>
               </div>
-              <div className="stat-card">
-                <h3>Member Since</h3>
-                <div className="stat-value">{new Date(user.createdAt).getFullYear()}</div>
-                <p>Year joined</p>
+              <div className="stat-card-modern">
+                <div className="stat-icon-bg"><Calendar size={24} /></div>
+                <div className="stat-content">
+                  <h3>Member Since</h3>
+                  <div className="stat-value">{new Date(user.createdAt).getFullYear()}</div>
+                  <p>Year joined</p>
+                </div>
               </div>
-              <div className="stat-card">
-                <h3>Role</h3>
-                <div className="stat-value">💼</div>
-                <p>Investor</p>
+              <div className="stat-card-modern">
+                <div className="stat-icon-bg"><Briefcase size={24} /></div>
+                <div className="stat-content">
+                  <h3>Role</h3>
+                  <div className="stat-value">Investor</div>
+                  <p>Active Investor</p>
+                </div>
               </div>
             </div>
 
-            <div className="investments-section">
-              <h2>Investment Activity</h2>
-              <p style={{ color: 'var(--light-gray)', opacity: 0.7, textAlign: 'center', padding: '2rem' }}>
-                Investment tracking coming soon. <a href="/pitches" style={{ color: 'var(--vibrant-cyan)' }}>Explore pitches to invest!</a>
-              </p>
+            <div className="section-header-modern">
+              <h2><TrendingUp size={24} /> Investment Activity</h2>
+            </div>
+            
+            <div className="empty-state-modern">
+               <div className="empty-icon"><TrendingUp size={48} /></div>
+               <h3>Investment tracking coming soon</h3>
+               <p>Explore pitches to start your investment portfolio.</p>
+               <a href="/pitches" className="btn-primary-modern">Explore Pitches</a>
             </div>
           </div>
         )}
 
         {showEditModal && (
-          <div className="edit-profile-modal">
-            <div className="modal-content">
-              <div className="modal-header">
+          <div className="edit-profile-modal-glass">
+            <div className="modal-content-glass">
+              <div className="modal-header-glass">
                 <h2>Edit Profile</h2>
                 <button 
-                  className="close-btn"
-                  onClick={() => setShowEditModal(false)}
+                  className="close-btn-glass"
+                  onClick={handleCloseModal}
                 >
-                  ×
+                  <X size={24} />
                 </button>
               </div>
-              <form onSubmit={handleEditSubmit} className={`edit-profile-form ${isSubmitting ? 'form-submitting' : ''}`}>
-                <div className={`form-group ${formErrors.fullName ? 'has-error' : ''}`}>
+              <form onSubmit={handleEditSubmit} className={`edit-profile-form-grid ${isSubmitting ? 'form-submitting' : ''}`}>
+                <div className={`form-group-modern ${formErrors.fullName ? 'has-error' : ''}`}>
                   <label>Full Name</label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={editForm.fullName}
-                    onChange={handleInputChange}
-                    placeholder="Enter your full name"
-                    disabled={isSubmitting}
-                  />
-                  {formErrors.fullName && (
-                    <div className="form-error">{formErrors.fullName}</div>
-                  )}
-                  <div className={`character-counter ${getCharacterCountInfo(editForm.fullName, null, 100).status}`}>
-                    {getCharacterCountInfo(editForm.fullName, null, 100).message}
+                  <div className="input-wrapper">
+                    <User size={18} className="input-icon" />
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={editForm.fullName}
+                      onChange={handleInputChange}
+                      placeholder="Enter your full name"
+                      disabled={isSubmitting}
+                    />
                   </div>
+                  {formErrors.fullName && <div className="form-error">{formErrors.fullName}</div>}
                 </div>
                 
-                <div className={`form-group ${formErrors.phoneNumber ? 'has-error' : ''}`}>
+                <div className={`form-group-modern ${formErrors.phoneNumber ? 'has-error' : ''}`}>
                   <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    value={editForm.phoneNumber}
-                    onChange={handleInputChange}
-                    placeholder="Enter your phone number"
-                    disabled={isSubmitting}
-                  />
-                  {formErrors.phoneNumber && (
-                    <div className="form-error">{formErrors.phoneNumber}</div>
-                  )}
-                  <div className={`character-counter ${getCharacterCountInfo(editForm.phoneNumber, null, 20).status}`}>
-                    {getCharacterCountInfo(editForm.phoneNumber, null, 20).message}
+                  <div className="input-wrapper">
+                    <Phone size={18} className="input-icon" />
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={editForm.phoneNumber}
+                      onChange={handleInputChange}
+                      placeholder="Enter your phone number"
+                      disabled={isSubmitting}
+                    />
                   </div>
+                  {formErrors.phoneNumber && <div className="form-error">{formErrors.phoneNumber}</div>}
                 </div>
                 
-                <div className={`form-group ${formErrors.occupation ? 'has-error' : ''}`}>
+                <div className={`form-group-modern ${formErrors.occupation ? 'has-error' : ''}`}>
                   <label>Occupation</label>
-                  <input
-                    type="text"
-                    name="occupation"
-                    value={editForm.occupation}
-                    onChange={handleInputChange}
-                    placeholder="Enter your occupation"
-                    disabled={isSubmitting}
-                  />
-                  {formErrors.occupation && (
-                    <div className="form-error">{formErrors.occupation}</div>
-                  )}
-                  <div className={`character-counter ${getCharacterCountInfo(editForm.occupation, null, 100).status}`}>
-                    {getCharacterCountInfo(editForm.occupation, null, 100).message}
+                  <div className="input-wrapper">
+                     <Briefcase size={18} className="input-icon" />
+                    <input
+                      type="text"
+                      name="occupation"
+                      value={editForm.occupation}
+                      onChange={handleInputChange}
+                      placeholder="Enter your occupation"
+                      disabled={isSubmitting}
+                    />
                   </div>
+                  {formErrors.occupation && <div className="form-error">{formErrors.occupation}</div>}
                 </div>
                 
-                <div className={`form-group ${formErrors.location ? 'has-error' : ''}`}>
+                <div className={`form-group-modern ${formErrors.location ? 'has-error' : ''}`}>
                   <label>Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={editForm.location}
-                    onChange={handleInputChange}
-                    placeholder="Enter your location"
-                    disabled={isSubmitting}
-                  />
-                  {formErrors.location && (
-                    <div className="form-error">{formErrors.location}</div>
-                  )}
-                  <div className={`character-counter ${getCharacterCountInfo(editForm.location, null, 100).status}`}>
-                    {getCharacterCountInfo(editForm.location, null, 100).message}
+                  <div className="input-wrapper">
+                    <MapPin size={18} className="input-icon" />
+                    <input
+                      type="text"
+                      name="location"
+                      value={editForm.location}
+                      onChange={handleInputChange}
+                      placeholder="Enter your location"
+                      disabled={isSubmitting}
+                    />
                   </div>
+                  {formErrors.location && <div className="form-error">{formErrors.location}</div>}
                 </div>
                 
-                <div className={`form-group ${formErrors.website ? 'has-error' : ''}`}>
+                <div className={`form-group-modern ${formErrors.website ? 'has-error' : ''}`}>
                   <label>Website</label>
-                  <input
-                    type="url"
-                    name="website"
-                    value={editForm.website}
-                    onChange={handleInputChange}
-                    placeholder="Enter your website URL"
-                    disabled={isSubmitting}
-                  />
-                  {formErrors.website && (
-                    <div className="form-error">{formErrors.website}</div>
-                  )}
+                  <div className="input-wrapper">
+                    <Globe size={18} className="input-icon" />
+                    <input
+                      type="url"
+                      name="website"
+                      value={editForm.website}
+                      onChange={handleInputChange}
+                      placeholder="https://example.com"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  {formErrors.website && <div className="form-error">{formErrors.website}</div>}
                 </div>
                 
                 {user.role === 'entrepreneur' ? (
                   <>
-                    <div className={`form-group ${formErrors.companyName ? 'has-error' : ''}`}>
+                    <div className={`form-group-modern ${formErrors.companyName ? 'has-error' : ''}`}>
                       <label>Company Name</label>
-                      <input
-                        type="text"
-                        name="companyName"
-                        value={editForm.companyName}
-                        onChange={handleInputChange}
-                        placeholder="Enter your company name"
-                        disabled={isSubmitting}
-                      />
-                      {formErrors.companyName && (
-                        <div className="form-error">{formErrors.companyName}</div>
-                      )}
-                      <div className={`character-counter ${getCharacterCountInfo(editForm.companyName, null, 100).status}`}>
-                        {getCharacterCountInfo(editForm.companyName, null, 100).message}
+                      <div className="input-wrapper">
+                         <Briefcase size={18} className="input-icon" />
+                        <input
+                          type="text"
+                          name="companyName"
+                          value={editForm.companyName}
+                          onChange={handleInputChange}
+                          placeholder="Enter your company name"
+                          disabled={isSubmitting}
+                        />
                       </div>
+                      {formErrors.companyName && <div className="form-error">{formErrors.companyName}</div>}
                     </div>
                     
-                    <div className={`form-group ${formErrors.industry ? 'has-error' : ''}`}>
+                    <div className={`form-group-modern ${formErrors.industry ? 'has-error' : ''}`}>
                       <label>Industry</label>
-                      <input
-                        type="text"
-                        name="industry"
-                        value={editForm.industry}
-                        onChange={handleInputChange}
-                        placeholder="Enter your industry"
-                        disabled={isSubmitting}
-                      />
-                      {formErrors.industry && (
-                        <div className="form-error">{formErrors.industry}</div>
-                      )}
-                      <div className={`character-counter ${getCharacterCountInfo(editForm.industry, null, 100).status}`}>
-                        {getCharacterCountInfo(editForm.industry, null, 100).message}
+                       <div className="input-wrapper">
+                        <Activity size={18} className="input-icon" />
+                        <input
+                          type="text"
+                          name="industry"
+                          value={editForm.industry}
+                          onChange={handleInputChange}
+                          placeholder="Enter your industry"
+                          disabled={isSubmitting}
+                        />
                       </div>
+                      {formErrors.industry && <div className="form-error">{formErrors.industry}</div>}
                     </div>
                   </>
                 ) : (
-                  <div className={`form-group ${formErrors.linkedinUrl ? 'has-error' : ''}`}>
+                  <div className={`form-group-modern ${formErrors.linkedinUrl ? 'has-error' : ''}`}>
                     <label>LinkedIn URL</label>
-                    <input
-                      type="url"
-                      name="linkedinUrl"
-                      value={editForm.linkedinUrl}
-                      onChange={handleInputChange}
-                      placeholder="Enter your LinkedIn profile URL"
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.linkedinUrl && (
-                      <div className="form-error">{formErrors.linkedinUrl}</div>
-                    )}
+                    <div className="input-wrapper">
+                       <Linkedin size={18} className="input-icon" />
+                       <input
+                        type="url"
+                        name="linkedinUrl"
+                        value={editForm.linkedinUrl}
+                        onChange={handleInputChange}
+                        placeholder="https://linkedin.com/in/..."
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {formErrors.linkedinUrl && <div className="form-error">{formErrors.linkedinUrl}</div>}
                   </div>
                 )}
                 
@@ -553,26 +627,25 @@ const Profile = () => {
                       placeholder="Tell us about yourself..."
                       rows="4"
                       disabled={isSubmitting}
+                      className="modern-textarea"
                     />
                     <div className={`form-field-counter character-counter ${getCharacterCountInfo(editForm.bio, null, 500).status}`}>
                       {getCharacterCountInfo(editForm.bio, null, 500).message}
                     </div>
                   </div>
-                  {formErrors.bio && (
-                    <div className="form-error">{formErrors.bio}</div>
-                  )}
+                  {formErrors.bio && <div className="form-error">{formErrors.bio}</div>}
                 </div>
                 
-                <div className="form-actions">
+                <div className="form-actions-modern">
                   <button 
                     type="button" 
-                    className="action-button"
-                    onClick={() => setShowEditModal(false)}
+                    className="btn-cancel-modern"
+                    onClick={handleCloseModal}
                     disabled={isSubmitting}
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="primary-cta-button" disabled={isSubmitting}>
+                  <button type="submit" className="btn-save-modern" disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
