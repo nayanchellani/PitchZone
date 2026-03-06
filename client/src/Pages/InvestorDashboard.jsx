@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom';
 import '../App.css';
 
 const InvestorDashboard = () => {
-  // Mock investor data using your format
+
   const investorStats = {
     totalInvested: 25000,
     pitchesFunded: 3
   };
 
-  // Mock investments (pitches they invested in)
+
   const myInvestments = [
     {
       id: 1,
@@ -39,7 +39,7 @@ const InvestorDashboard = () => {
     }
   ];
 
-  // Mock recommended pitches (open pitches to explore)
+
   const recommendedPitches = [
     {
       id: 4,
@@ -98,9 +98,9 @@ const InvestorDashboard = () => {
               <p className="investment-description">{investment.description}</p>
               <div className="investment-progress">
                 <div className="progress-bar">
-                  <div 
-                    className="progress-fill" 
-                    style={{width: `${(investment.raisedAmount / investment.targetAmount) * 100}%`}}
+                  <div
+                    className="progress-fill"
+                    style={{ width: `${(investment.raisedAmount / investment.targetAmount) * 100}%` }}
                   ></div>
                 </div>
                 <div className="progress-info">

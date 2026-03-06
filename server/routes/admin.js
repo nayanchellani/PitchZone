@@ -5,7 +5,7 @@ const Pitch = require('../models/Pitch');
 
 const router = express.Router();
 
-// Apply authentication and admin middleware to all routes
+
 router.use(authenticateToken);
 router.use(requireAdmin);
 
@@ -18,14 +18,14 @@ router.get('/dashboard', async (req, res) => {
     const totalEntrepreneurs = await User.countDocuments({ role: 'entrepreneur' });
     const totalInvestors = await User.countDocuments({ role: 'investor' });
     const totalPitches = await Pitch.countDocuments();
-    
-    // Get recent users (last 10)
+
+
     const recentUsers = await User.find()
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(10);
 
-    // Get recent pitches (last 10)
+
     const recentPitches = await Pitch.find()
       .populate('entrepreneur', 'username fullName')
       .sort({ createdAt: -1 })
@@ -64,8 +64,8 @@ router.get('/users', async (req, res) => {
     const search = req.query.search;
 
     const skip = (page - 1) * limit;
-    
-    // Build query
+
+
     let query = {};
     if (role && role !== 'all') {
       query.role = role;
@@ -112,7 +112,7 @@ router.get('/users', async (req, res) => {
 router.get('/users/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -120,7 +120,7 @@ router.get('/users/:id', async (req, res) => {
       });
     }
 
-    // Get user's pitches if entrepreneur
+
     let pitches = [];
     if (user.role === 'entrepreneur') {
       pitches = await Pitch.find({ entrepreneur: user._id });
@@ -148,7 +148,7 @@ router.get('/users/:id', async (req, res) => {
 router.put('/users/:id', async (req, res) => {
   try {
     const { fullName, email, role, bio, linkedinUrl, companyName, industry } = req.body;
-    
+
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({
@@ -157,7 +157,7 @@ router.put('/users/:id', async (req, res) => {
       });
     }
 
-    // Update fields
+
     if (fullName !== undefined) user.fullName = fullName;
     if (email !== undefined) user.email = email;
     if (role !== undefined) user.role = role;
@@ -188,7 +188,7 @@ router.put('/users/:id', async (req, res) => {
 router.delete('/users/:id', async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -196,7 +196,7 @@ router.delete('/users/:id', async (req, res) => {
       });
     }
 
-    // Don't allow deleting admin users
+
     if (user.role === 'admin') {
       return res.status(403).json({
         success: false,
@@ -204,7 +204,7 @@ router.delete('/users/:id', async (req, res) => {
       });
     }
 
-    // Delete user's pitches if entrepreneur
+
     if (user.role === 'entrepreneur') {
       await Pitch.deleteMany({ entrepreneur: user._id });
     }
@@ -235,7 +235,7 @@ router.get('/pitches', async (req, res) => {
     const search = req.query.search;
 
     const skip = (page - 1) * limit;
-    
+
     // Build query
     let query = {};
     if (status && status !== 'all') {
@@ -284,7 +284,7 @@ router.get('/pitches/:id', async (req, res) => {
   try {
     const pitch = await Pitch.findById(req.params.id)
       .populate('entrepreneur', 'username fullName email companyName');
-    
+
     if (!pitch) {
       return res.status(404).json({
         success: false,
@@ -311,7 +311,7 @@ router.get('/pitches/:id', async (req, res) => {
 router.put('/pitches/:id', async (req, res) => {
   try {
     const { title, description, industry, fundingGoal, status } = req.body;
-    
+
     const pitch = await Pitch.findById(req.params.id);
     if (!pitch) {
       return res.status(404).json({
@@ -320,7 +320,7 @@ router.put('/pitches/:id', async (req, res) => {
       });
     }
 
-    // Update fields
+
     if (title !== undefined) pitch.title = title;
     if (description !== undefined) pitch.description = description;
     if (industry !== undefined) pitch.industry = industry;
@@ -349,7 +349,7 @@ router.put('/pitches/:id', async (req, res) => {
 router.delete('/pitches/:id', async (req, res) => {
   try {
     const pitch = await Pitch.findById(req.params.id);
-    
+
     if (!pitch) {
       return res.status(404).json({
         success: false,
@@ -379,7 +379,7 @@ router.post('/create-user', async (req, res) => {
   try {
     const { username, email, password, role, fullName } = req.body;
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
     });
@@ -387,13 +387,13 @@ router.post('/create-user', async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: existingUser.email === email 
-          ? 'User with this email already exists' 
+        message: existingUser.email === email
+          ? 'User with this email already exists'
           : 'Username is already taken'
       });
     }
 
-    // Create new user
+
     const user = new User({
       username,
       email,

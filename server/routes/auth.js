@@ -6,7 +6,7 @@ const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Generate JWT token
+
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: '7d' // Token expires in 7 days
@@ -17,7 +17,7 @@ const generateToken = (userId) => {
 // @desc    Register a new user
 // @access  Public
 router.post('/register', [
-  // Validation middleware
+
   body('username')
     .trim()
     .isLength({ min: 3, max: 30 })
@@ -41,7 +41,7 @@ router.post('/register', [
     .withMessage('Full name cannot exceed 100 characters')
 ], async (req, res) => {
   try {
-    // Check for validation errors
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -53,21 +53,21 @@ router.post('/register', [
 
     const { username, email, password, role, fullName, linkedinUrl } = req.body;
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
     });
 
     if (existingUser) {
       return res.status(400).json({
-        message: existingUser.email === email 
-          ? 'User with this email already exists' 
+        message: existingUser.email === email
+          ? 'User with this email already exists'
           : 'Username is already taken',
         success: false
       });
     }
 
-    // Create new user
+
     const userData = {
       username,
       email,
@@ -76,7 +76,7 @@ router.post('/register', [
       fullName: fullName || username
     };
 
-    // Add role-specific fields
+
     if (role === 'investor' && linkedinUrl) {
       userData.linkedinUrl = linkedinUrl;
     }
@@ -84,10 +84,10 @@ router.post('/register', [
     const user = new User(userData);
     await user.save();
 
-    // Generate JWT token
+
     const token = generateToken(user._id);
 
-    // Return success response (without password)
+
     const userResponse = user.getPublicProfile();
 
     res.status(201).json({
@@ -110,7 +110,7 @@ router.post('/register', [
 // @desc    Login user
 // @access  Public
 router.post('/login', [
-  // Validation middleware
+
   body('email')
     .isEmail()
     .normalizeEmail()
@@ -132,7 +132,7 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Find user by email
+
     const user = await User.findByEmail(email);
     if (!user) {
       return res.status(400).json({
@@ -141,7 +141,7 @@ router.post('/login', [
       });
     }
 
-    // Check password
+
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(400).json({
@@ -150,10 +150,10 @@ router.post('/login', [
       });
     }
 
-    // Generate JWT token
+
     const token = generateToken(user._id);
 
-    // Return success response (without password)
+
     const userResponse = user.getPublicProfile();
 
     res.json({
@@ -177,9 +177,9 @@ router.post('/login', [
 // @access  Private
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    // User is already attached to req by authenticateToken middleware
+
     const userResponse = req.user.getPublicProfile();
-    
+
     res.json({
       message: 'User profile retrieved successfully',
       success: true,
@@ -199,7 +199,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 // @access  Private
 router.put('/profile', [
   authenticateToken,
-  // Validation middleware
+
   body('fullName')
     .optional()
     .trim()
@@ -258,14 +258,14 @@ router.put('/profile', [
     const allowedUpdates = ['fullName', 'bio', 'linkedinUrl', 'companyName', 'industry', 'phoneNumber', 'occupation', 'location', 'website'];
     const updates = {};
 
-    // Only include allowed fields that are present in request
+
     allowedUpdates.forEach(field => {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
       }
     });
 
-    // Update user
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
       updates,

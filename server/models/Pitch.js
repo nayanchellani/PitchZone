@@ -31,7 +31,7 @@ const pitchSchema = new mongoose.Schema({
     ref: 'User',
     required: [true, 'Entrepreneur is required']
   },
-  // Array of investors with their investment amounts
+
   investors: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -48,7 +48,7 @@ const pitchSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  // Array of feedback from investors
+
   feedback: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -71,7 +71,7 @@ const pitchSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  // Additional pitch details
+
   category: {
     type: String,
     enum: ['Technology', 'Healthcare', 'Education', 'Finance', 'E-commerce', 'Food & Beverage', 'Entertainment', 'Other'],
@@ -87,13 +87,13 @@ const pitchSchema = new mongoose.Schema({
     min: [0.1, 'Minimum equity is 0.1%'],
     max: [100, 'Maximum equity is 100%']
   },
-  // Pitch status
+
   status: {
     type: String,
     enum: ['Active', 'Funded', 'Closed', 'Paused'],
     default: 'Active'
   },
-  // Media and documents
+
   imageUrl: {
     type: String,
     trim: true
@@ -106,7 +106,7 @@ const pitchSchema = new mongoose.Schema({
     url: String,
     type: String // 'business-plan', 'financial-projection', etc.
   }],
-  // Pitch metrics
+
   views: {
     type: Number,
     default: 0
@@ -115,36 +115,35 @@ const pitchSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
-  // Funding deadline
+
   deadline: {
     type: Date
   }
 }, {
-  timestamps: true // Adds createdAt and updatedAt fields
+  timestamps: true
 });
 
-// Virtual for calculating funding percentage
-pitchSchema.virtual('fundingPercentage').get(function() {
+
+pitchSchema.virtual('fundingPercentage').get(function () {
   return this.targetAmount > 0 ? (this.raisedAmount / this.targetAmount) * 100 : 0;
 });
 
-// Virtual for total number of investors
-pitchSchema.virtual('totalInvestors').get(function() {
+
+pitchSchema.virtual('totalInvestors').get(function () {
   return this.investors.length;
 });
 
-// Virtual for average rating
-pitchSchema.virtual('averageRating').get(function() {
+
+pitchSchema.virtual('averageRating').get(function () {
   if (this.feedback.length === 0) return 0;
   const totalRating = this.feedback.reduce((sum, fb) => sum + (fb.rating || 0), 0);
   return totalRating / this.feedback.length;
 });
 
-// Instance method to add investment
-pitchSchema.methods.addInvestment = function(userId, amount) {
+pitchSchema.methods.addInvestment = function (userId, amount) {
   // Check if user already invested
   const existingInvestment = this.investors.find(inv => inv.userId.toString() === userId.toString());
-  
+
   if (existingInvestment) {
     // Update existing investment
     existingInvestment.amount += amount;
@@ -152,52 +151,49 @@ pitchSchema.methods.addInvestment = function(userId, amount) {
     // Add new investment
     this.investors.push({ userId, amount });
   }
-  
+
   // Update raised amount
   this.raisedAmount += amount;
-  
+
   // Check if funding goal is reached
   if (this.raisedAmount >= this.targetAmount && this.status === 'Active') {
     this.status = 'Funded';
   }
-  
+
   return this.save();
 };
 
-// Instance method to add feedback
-pitchSchema.methods.addFeedback = function(userId, message, rating = null) {
+pitchSchema.methods.addFeedback = function (userId, message, rating = null) {
   this.feedback.push({
     userId,
     message,
     rating,
     createdAt: new Date()
   });
-  
+
   return this.save();
 };
 
-// Static method to find pitches by entrepreneur
-pitchSchema.statics.findByEntrepreneur = function(entrepreneurId) {
+pitchSchema.statics.findByEntrepreneur = function (entrepreneurId) {
   return this.find({ entrepreneur: entrepreneurId })
     .populate('entrepreneur', 'username email fullName')
     .populate('investors.userId', 'username fullName')
     .populate('feedback.userId', 'username fullName');
 };
 
-// Static method to get active pitches
-pitchSchema.statics.getActivePitches = function() {
+pitchSchema.statics.getActivePitches = function () {
   return this.find({ status: 'Active' })
     .populate('entrepreneur', 'username email fullName')
     .sort({ createdAt: -1 });
 };
 
-// Indexes for better query performance
+
 pitchSchema.index({ entrepreneur: 1 });
 pitchSchema.index({ status: 1 });
 pitchSchema.index({ category: 1 });
 pitchSchema.index({ createdAt: -1 });
 
-// Ensure virtuals are included when converting to JSON
+
 pitchSchema.set('toJSON', { virtuals: true });
 pitchSchema.set('toObject', { virtuals: true });
 

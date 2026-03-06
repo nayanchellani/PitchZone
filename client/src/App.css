@@ -551,8 +551,6 @@ body {
   align-items: center;
   text-align: center;
   padding: var(--spacing-2xl);
-  padding: var(--spacing-2xl);
-  /* Removed extra padding-left to ensure perfect centering */
   position: relative;
   z-index: 2;
   color: var(--primary-dark);

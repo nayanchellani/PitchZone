@@ -9,8 +9,8 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  
-  // Get user role from localStorage
+
+
   const [userRole] = useState(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     return user.role || 'entrepreneur';
@@ -26,21 +26,21 @@ const Navbar = () => {
 
   const handleLogout = () => {
     setIsDropdownOpen(false);
-    
-    // Get user name before clearing storage
+
+
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     const userName = user.fullName || user.username || 'there';
-    
-    // Clear all stored user data
+
+
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
-    
-    // Show logout toast
+
+
     showToast('Logged out successfully', 'logout', 3000);
-    
-    // Redirect to landing page after brief delay
+
+
     setTimeout(() => {
       navigate('/');
     }, 500);
@@ -62,21 +62,21 @@ const Navbar = () => {
           >
             Home
           </Link>
-          
+
           <Link
             to="/dashboard"
             className={`navbar-link ${isActive("/dashboard") ? "active" : ""}`}
           >
             Dashboard
           </Link>
-          
+
           <Link
             to="/pitches"
             className={`navbar-link ${isActive("/pitches") ? "active" : ""}`}
           >
             {userRole === 'entrepreneur' ? 'My Pitches' : 'Explore Pitches'}
           </Link>
-          
+
           <Link
             to="/leaderboard"
             className={`navbar-link ${isActive("/leaderboard") ? "active" : ""}`}

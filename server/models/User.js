@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema({
     },
     required: [true, 'Role is required']
   },
-  // Additional fields for user profile
+
   fullName: {
     type: String,
     trim: true
@@ -47,7 +47,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     maxlength: [500, 'Bio cannot exceed 500 characters']
   },
-  // Investor-specific fields
+
   linkedinUrl: {
     type: String,
     trim: true
@@ -56,7 +56,7 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  // Entrepreneur-specific fields
+
   companyName: {
     type: String,
     trim: true
@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // Additional profile fields
+
   phoneNumber: {
     type: String,
     trim: true
@@ -82,22 +82,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // Profile completion tracking
+
   profileCompleted: {
     type: Boolean,
     default: false
   }
 }, {
-  timestamps: true // Adds createdAt and updatedAt fields
+  timestamps: true
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
-  // Only hash the password if it has been modified (or is new)
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  
+
   try {
-    // Hash password with cost of 12
+
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
     next();
@@ -106,33 +105,33 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-// Instance method to check password
-userSchema.methods.comparePassword = async function(candidatePassword) {
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Instance method to get public profile (without sensitive data)
-userSchema.methods.getPublicProfile = function() {
+
+userSchema.methods.getPublicProfile = function () {
   const userObject = this.toObject();
   delete userObject.password;
   return userObject;
 };
 
-// Instance method to calculate profile completion percentage
-userSchema.methods.getProfileCompletionPercentage = function() {
+
+userSchema.methods.getProfileCompletionPercentage = function () {
   const requiredFields = ['fullName', 'bio', 'phoneNumber', 'occupation', 'location'];
-  const roleSpecificFields = this.role === 'entrepreneur' 
-    ? ['companyName', 'industry'] 
+  const roleSpecificFields = this.role === 'entrepreneur'
+    ? ['companyName', 'industry']
     : ['linkedinUrl'];
-  
+
   const allRequiredFields = [...requiredFields, ...roleSpecificFields];
   const completedFields = allRequiredFields.filter(field => this[field] && this[field].trim() !== '');
-  
+
   return Math.round((completedFields.length / allRequiredFields.length) * 100);
 };
 
-// Static method to find user by email
-userSchema.statics.findByEmail = function(email) {
+
+userSchema.statics.findByEmail = function (email) {
   return this.findOne({ email: email.toLowerCase() });
 };
 

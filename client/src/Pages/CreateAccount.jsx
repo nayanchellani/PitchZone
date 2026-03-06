@@ -29,7 +29,7 @@ const CreateAccount = () => {
   };
 
   const validateUsername = (username) => {
-    // Must be 3-30 characters, only letters, numbers, and underscores
+
     const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
     return usernameRegex.test(username);
   };
@@ -41,7 +41,7 @@ const CreateAccount = () => {
       [name]: value,
     }));
 
-    // Clear error when user starts typing
+
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -59,7 +59,7 @@ const CreateAccount = () => {
       accessCode: type === "entrepreneur" ? "" : prev.accessCode,
     }));
 
-    // Clear any related errors
+
     setErrors((prev) => ({
       ...prev,
       linkedinUrl: "",
@@ -114,7 +114,7 @@ const CreateAccount = () => {
 
     setErrors(newErrors);
 
-    // If no errors, proceed with account creation
+
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
 
@@ -127,7 +127,7 @@ const CreateAccount = () => {
           fullName: formData.fullName,
         };
 
-        // Add investor-specific data
+
         if (formData.userType === "investor" && formData.linkedinUrl) {
           registrationData.linkedinUrl = formData.linkedinUrl;
         }
@@ -146,20 +146,20 @@ const CreateAccount = () => {
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", JSON.stringify(data.user));
 
-          // Show success toast
+
           const userName = data.user.fullName || data.user.username || 'there';
           showToast(`Welcome to PitchZone, ${userName}!`, 'login', 3000);
 
-          // Registration successful - redirect to dashboard after brief delay
+
           setTimeout(() => {
             navigate("/dashboard");
           }, 500);
         } else {
-          // Handle registration errors
+
           if (data.errors && Array.isArray(data.errors)) {
             const backendErrors = {};
             data.errors.forEach((error) => {
-              // Map backend field names to form field names
+
               const fieldName = error.path || error.param;
               backendErrors[fieldName] = error.msg;
             });
@@ -262,18 +262,16 @@ const CreateAccount = () => {
                 <div className="toggle-switch">
                   <button
                     type="button"
-                    className={`toggle-option ${
-                      formData.userType === "entrepreneur" ? "active" : ""
-                    }`}
+                    className={`toggle-option ${formData.userType === "entrepreneur" ? "active" : ""
+                      }`}
                     onClick={() => handleUserTypeToggle("entrepreneur")}
                   >
                     Entrepreneur
                   </button>
                   <button
                     type="button"
-                    className={`toggle-option ${
-                      formData.userType === "investor" ? "active" : ""
-                    }`}
+                    className={`toggle-option ${formData.userType === "investor" ? "active" : ""
+                      }`}
                     onClick={() => handleUserTypeToggle("investor")}
                   >
                     Investor
@@ -283,9 +281,8 @@ const CreateAccount = () => {
             </div>
 
             <div
-              className={`investor-fields ${
-                formData.userType === "investor" ? "show" : "hide"
-              }`}
+              className={`investor-fields ${formData.userType === "investor" ? "show" : "hide"
+                }`}
             >
               {formData.userType === "investor" && (
                 <>
@@ -296,9 +293,8 @@ const CreateAccount = () => {
                       placeholder="Enter your LinkedIn Profile URL"
                       value={formData.linkedinUrl}
                       onChange={handleInputChange}
-                      className={`signup-input ${
-                        errors.linkedinUrl ? "error" : ""
-                      }`}
+                      className={`signup-input ${errors.linkedinUrl ? "error" : ""
+                        }`}
                     />
                     <span className="input-icon"><Briefcase size={20} /></span>
                     {errors.linkedinUrl && (
@@ -315,9 +311,8 @@ const CreateAccount = () => {
                       placeholder="Investor Access Code"
                       value={formData.accessCode}
                       onChange={handleInputChange}
-                      className={`signup-input ${
-                        errors.accessCode ? "error" : ""
-                      }`}
+                      className={`signup-input ${errors.accessCode ? "error" : ""
+                        }`}
                     />
                     <span className="input-icon"><Key size={20} /></span>
                     {errors.accessCode && (
@@ -350,9 +345,8 @@ const CreateAccount = () => {
                 placeholder="Re-enter your password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className={`signup-input ${
-                  errors.confirmPassword ? "error" : ""
-                }`}
+                className={`signup-input ${errors.confirmPassword ? "error" : ""
+                  }`}
               />
               <span className="input-icon"><Lock size={20} /></span>
               {errors.confirmPassword && (
@@ -362,9 +356,8 @@ const CreateAccount = () => {
 
             <button
               type="submit"
-              className={`signup-button auth-button ${
-                loading ? "disabled-button" : ""
-              }`}
+              className={`signup-button auth-button ${loading ? "disabled-button" : ""
+                }`}
               disabled={loading}
             >
               {loading ? (

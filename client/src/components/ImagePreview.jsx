@@ -13,36 +13,36 @@ const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
       return;
     }
 
-    // Check for validation warnings
+
     const validation = isValidImageUrl(imageUrl);
     setShowWarning(!!validation.warning);
 
     setImageStatus('loading');
     setImageError('');
 
-    // Create a new image to test if URL is valid
+
     const img = new Image();
-    
+
     img.onload = () => {
       setImageStatus('success');
       setImageError('');
     };
-    
+
     img.onerror = () => {
       setImageStatus('error');
       setImageError('Unable to load image from this URL. Please check if the URL is correct and publicly accessible.');
     };
-    
-    // Set a timeout for slow loading images
+
+
     const timeout = setTimeout(() => {
       if (imageStatus === 'loading') {
         setImageStatus('error');
         setImageError('Image is taking too long to load. Please try a different URL.');
       }
     }, 8000); // Reduced timeout to 8 seconds
-    
+
     img.src = imageUrl;
-    
+
     return () => clearTimeout(timeout);
   }, [imageUrl, imageStatus]);
 
@@ -58,11 +58,11 @@ const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
           <span>Loading image...</span>
         </div>
       )}
-      
+
       {imageStatus === 'success' && (
         <div className="image-preview-success">
-          <img 
-            src={imageUrl} 
+          <img
+            src={imageUrl}
             alt={alt}
             className="image-preview"
             style={{
@@ -83,7 +83,7 @@ const ImagePreview = ({ imageUrl, alt = "Preview", className = "" }) => {
           )}
         </div>
       )}
-      
+
       {imageStatus === 'error' && (
         <div className="image-preview-error">
           <div className="image-preview-placeholder error">

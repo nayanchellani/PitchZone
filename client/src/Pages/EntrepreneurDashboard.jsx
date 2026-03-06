@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import "../App.css";
 
 const EntrepreneurDashboard = () => {
-  // Mock entrepreneur's active pitch using your format
+
   const activePitch = {
     id: 1,
     title: "AI Notes Summarizer",

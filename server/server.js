@@ -3,23 +3,23 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-// Load environment variables
+
 dotenv.config();
 
-// Import routes
+
 const authRoutes = require('./routes/auth');
 const pitchRoutes = require('./routes/pitches');
 const adminRoutes = require('./routes/admin');
 
-// Initialize Express app
+
 const app = express();
 
-// CORS configuration
+
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
   'https://pitch-zone.vercel.app/',
-  process.env.FRONTEND_URL // Production frontend URL
+
 ].filter(Boolean);
 
 app.use(cors({
@@ -28,16 +28,16 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
-// Middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+
 app.use('/api/auth', authRoutes);
 app.use('/api/pitches', pitchRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Basic route for testing
+
 app.get('/', (req, res) => {
   res.json({
     message: 'Welcome to PitchZone API!',
@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handling middleware
+
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -59,12 +59,12 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-// 404 handler
+
 app.use('*', (_req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB
+
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI);
@@ -75,7 +75,7 @@ const connectDB = async () => {
   }
 };
 
-// Start server
+
 const PORT = process.env.PORT || 5000;
 
 connectDB().then(() => {
@@ -85,7 +85,7 @@ connectDB().then(() => {
   });
 });
 
-// Handle unhandled promise rejections
+
 process.on('unhandledRejection', (err) => {
   console.log('Unhandled Promise Rejection:', err.message);
   process.exit(1);

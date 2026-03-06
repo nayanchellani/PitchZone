@@ -17,11 +17,11 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setErrors({});
-    
+
     try {
 
-      
-      
+
+
       const response = await fetch(API_ENDPOINTS.login, {
         method: 'POST',
         headers: {
@@ -34,17 +34,12 @@ const Login = () => {
 
 
       if (data.success) {
-        // Store user data and token
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
-        console.log('Login successful, user role:', data.user.role);
-        
-        // Show welcome toast
+
         const userName = data.user.fullName || data.user.username || 'there';
         showToast(`Welcome back, ${userName}!`, 'login', 3000);
-        
-        // Redirect based on user role after a brief delay
+
         setTimeout(() => {
           if (data.user.role === 'admin') {
             navigate('/admin');
@@ -80,7 +75,7 @@ const Login = () => {
 
             {errors.general && (
               <div className="error-message general-error" style={{
-                marginBottom: '1rem', 
+                marginBottom: '1rem',
                 padding: '0.75rem',
                 backgroundColor: '#fee',
                 color: '#e74c3c',

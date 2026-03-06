@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Middleware to verify JWT token
+
 const authenticateToken = async (req, res, next) => {
   try {
-    // Get token from header
+
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -15,10 +15,10 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Verify token
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Get user from database (excluding password)
+
     const user = await User.findById(decoded.userId).select('-password');
     
     if (!user) {
@@ -28,7 +28,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Add user to request object
+
     req.user = user;
     next();
   } catch (error) {
@@ -55,7 +55,7 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Middleware to check if user is an entrepreneur
+
 const requireEntrepreneur = (req, res, next) => {
   if (req.user && req.user.role === 'entrepreneur') {
     next();
@@ -67,7 +67,7 @@ const requireEntrepreneur = (req, res, next) => {
   }
 };
 
-// Middleware to check if user is an investor
+
 const requireInvestor = (req, res, next) => {
   if (req.user && req.user.role === 'investor') {
     next();
@@ -79,7 +79,7 @@ const requireInvestor = (req, res, next) => {
   }
 };
 
-// Middleware to check if user is either entrepreneur or investor (authenticated user)
+
 const requireAuth = (req, res, next) => {
   if (req.user && (req.user.role === 'entrepreneur' || req.user.role === 'investor' || req.user.role === 'admin')) {
     next();
@@ -91,7 +91,7 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-// Middleware to check if user is an admin
+
 const requireAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
@@ -103,7 +103,7 @@ const requireAdmin = (req, res, next) => {
   }
 };
 
-// Optional authentication - doesn't fail if no token provided
+
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -119,7 +119,7 @@ const optionalAuth = async (req, res, next) => {
     
     next();
   } catch (error) {
-    // Continue without authentication if token is invalid
+
     next();
   }
 };

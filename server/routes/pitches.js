@@ -17,7 +17,7 @@ const router = express.Router();
 router.post('/create', [
   authenticateToken,
   requireEntrepreneur,
-  // Validation middleware
+
   body('title')
     .trim()
     .isLength({ min: 5, max: 100 })
@@ -44,7 +44,7 @@ router.post('/create', [
     .withMessage('Please provide a valid image URL')
 ], async (req, res) => {
   try {
-    // Check for validation errors
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -56,7 +56,7 @@ router.post('/create', [
 
     const { title, description, targetAmount, category, equityOffered, stage, deadline, imageUrl } = req.body;
 
-    // Check if entrepreneur already has an active pitch
+
     const existingPitch = await Pitch.findOne({
       entrepreneur: req.user._id,
       status: 'Active'
@@ -69,7 +69,7 @@ router.post('/create', [
       });
     }
 
-    // Create new pitch
+
     const pitch = new Pitch({
       title,
       description,
@@ -84,7 +84,7 @@ router.post('/create', [
 
     await pitch.save();
 
-    // Populate entrepreneur details
+
     await pitch.populate('entrepreneur', 'username email fullName');
 
     res.status(201).json({
@@ -117,7 +117,7 @@ router.get('/', optionalAuth, async (req, res) => {
       search
     } = req.query;
 
-    // Build query
+
     const query = {};
 
     if (status && status !== 'all') {
@@ -135,10 +135,10 @@ router.get('/', optionalAuth, async (req, res) => {
       ];
     }
 
-    // Calculate pagination
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get pitches with pagination
+
     const pitches = await Pitch.find(query)
       .populate('entrepreneur', 'username email fullName')
       .populate('investors.userId', 'username fullName')
@@ -146,7 +146,7 @@ router.get('/', optionalAuth, async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    // Get total count for pagination
+
     const totalPitches = await Pitch.countDocuments(query);
     const totalPages = Math.ceil(totalPitches / parseInt(limit));
 
@@ -180,7 +180,7 @@ router.get('/:id', [
   param('id').isMongoId().withMessage('Invalid pitch ID')
 ], async (req, res) => {
   try {
-    // Check for validation errors
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -235,7 +235,7 @@ router.post('/:id/invest', [
     .withMessage('Investment amount must be at least ₹100')
 ], async (req, res) => {
   try {
-    // Check for validation errors
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -248,7 +248,7 @@ router.post('/:id/invest', [
     const { amount } = req.body;
     const pitchId = req.params.id;
 
-    // Find the pitch
+
     const pitch = await Pitch.findById(pitchId)
       .populate('entrepreneur', 'username email fullName');
 
@@ -259,7 +259,7 @@ router.post('/:id/invest', [
       });
     }
 
-    // Check if pitch is active
+
     if (pitch.status !== 'Active') {
       return res.status(400).json({
         message: 'This pitch is no longer accepting investments',
@@ -275,10 +275,10 @@ router.post('/:id/invest', [
       });
     }
 
-    // Add investment
+
     await pitch.addInvestment(req.user._id, parseFloat(amount));
 
-    // Populate the updated pitch
+
     await pitch.populate('investors.userId', 'username fullName');
 
     res.json({
@@ -317,7 +317,7 @@ router.post('/:id/feedback', [
     .withMessage('Rating must be between 1 and 5')
 ], async (req, res) => {
   try {
-    // Check for validation errors
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -330,7 +330,7 @@ router.post('/:id/feedback', [
     const { message, rating } = req.body;
     const pitchId = req.params.id;
 
-    // Find the pitch
+
     const pitch = await Pitch.findById(pitchId);
 
     if (!pitch) {
@@ -340,7 +340,7 @@ router.post('/:id/feedback', [
       });
     }
 
-    // Check if user already left feedback
+
     const existingFeedback = pitch.feedback.find(
       fb => fb.userId.toString() === req.user._id.toString()
     );
@@ -352,10 +352,10 @@ router.post('/:id/feedback', [
       });
     }
 
-    // Add feedback
+
     await pitch.addFeedback(req.user._id, message, rating);
 
-    // Populate the updated pitch
+
     await pitch.populate('feedback.userId', 'username fullName');
 
     res.json({
@@ -421,7 +421,7 @@ router.put('/:id', [
     .withMessage('Description must be between 20 and 2000 characters')
 ], async (req, res) => {
   try {
-    // Check for validation errors
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
@@ -440,7 +440,7 @@ router.put('/:id', [
       });
     }
 
-    // Check if user owns this pitch
+
     if (pitch.entrepreneur.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         message: 'You can only update your own pitches',
@@ -448,7 +448,7 @@ router.put('/:id', [
       });
     }
 
-    // Update allowed fields
+
     const allowedUpdates = ['title', 'description', 'category', 'stage', 'equityOffered'];
     const updates = {};
 
@@ -497,7 +497,7 @@ router.delete('/:id', [
       });
     }
 
-    // Check if user owns this pitch
+
     if (pitch.entrepreneur.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         message: 'You can only delete your own pitches',
@@ -505,7 +505,7 @@ router.delete('/:id', [
       });
     }
 
-    // Actually delete the pitch from database
+
     await Pitch.findByIdAndDelete(req.params.id);
 
     res.json({
